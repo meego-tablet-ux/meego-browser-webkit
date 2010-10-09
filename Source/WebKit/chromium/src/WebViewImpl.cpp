@@ -482,9 +482,6 @@ void WebViewImpl::mouseDown(const WebMouseEvent& event)
         || (event.button == WebMouseEvent::ButtonLeft
             && event.modifiers & WebMouseEvent::ControlKey))
         mouseContextMenu(event);
-#elif OS(LINUX) || OS(FREEBSD)
-    if (event.button == WebMouseEvent::ButtonRight)
-        mouseContextMenu(event);
 #endif
 }
 
@@ -561,7 +558,7 @@ void WebViewImpl::mouseUp(const WebMouseEvent& event)
     mainFrameImpl()->frame()->eventHandler()->handleMouseReleaseEvent(
         PlatformMouseEventBuilder(mainFrameImpl()->frameView(), event));
 
-#if OS(WINDOWS)
+#if OS(WINDOWS) || OS(LINUX)
     // Dispatch the contextmenu event regardless of if the click was swallowed.
     // On Mac/Linux, we handle it on mouse down, not up.
     if (event.button == WebMouseEvent::ButtonRight)
