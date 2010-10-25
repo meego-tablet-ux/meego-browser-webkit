@@ -256,6 +256,10 @@ public:
     bool charEvent(const WebKeyboardEvent&);
     bool touchEvent(const WebTouchEvent&);
 
+#if defined(TOOLKIT_MEEGOTOUCH)
+	virtual void queryNodeTypeAtPoint(int x, int y, bool &is_embedded_object, bool &is_editable_text);
+#endif
+
     // Handles context menu events orignated via the the keyboard. These
     // include the VK_APPS virtual key and the Shift+F10 combine. Code is
     // based on the Webkit function bool WebView::handleContextMenuEvent(WPARAM

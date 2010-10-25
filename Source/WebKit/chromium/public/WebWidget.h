@@ -138,6 +138,10 @@ public:
     // to render its contents.
     virtual bool isAcceleratedCompositingActive() const = 0;
 
+#if defined(TOOLKIT_MEEGOTOUCH)
+	virtual void queryNodeTypeAtPoint(int x, int y, bool &is_embedded_object, bool &is_editable_text) {};
+#endif
+
 protected:
     ~WebWidget() { }
 };

@@ -745,6 +745,32 @@ bool WebViewImpl::touchEvent(const WebTouchEvent& event)
 }
 #endif
 
+#if defined(TOOLKIT_MEEGOTOUCH)
+void WebViewImpl::queryNodeTypeAtPoint(int x, int y, bool &is_embedded_object, bool &is_editable_text)
+{
+    is_embedded_object = false;
+    is_editable_text = false;
+
+    if (!mainFrameImpl() || !mainFrameImpl()->frameView())
+        return;
+
+    m_lastMouseDownPoint = WebPoint(x, y);
+
+    RefPtr<Node> clickedNode;
+
+    IntPoint point(x, y);
+    point = m_page->mainFrame()->view()->windowToContents(point);
+    HitTestResult result(m_page->mainFrame()->eventHandler()->hitTestResultAtPoint(point, false));
+    Node* hitNode = result.innerNonSharedNode();
+
+    if (hitNode) {
+        is_editable_text = result.isContentEditable();
+        if (hitNode->renderer())
+            is_embedded_object = hitNode->renderer()->isEmbeddedObject();
+    }
+}
+#endif
+
 #if OS(WINDOWS) || OS(LINUX) || OS(FREEBSD)
 // Mac has no way to open a context menu based on a keyboard event.
 bool WebViewImpl::sendContextMenuEvent(const WebKeyboardEvent& event)
