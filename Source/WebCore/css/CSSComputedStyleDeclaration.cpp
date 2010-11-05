@@ -287,6 +287,8 @@ static const int computedProperties[] = {
     CSSPropertyWebkitSvgShadow,
     CSSPropertyVectorEffect
 #endif
+    , 
+    CSSPropertyWebkitTapHighlightColor
 };
 
 const unsigned numComputedProperties = WTF_ARRAY_LENGTH(computedProperties);
@@ -1764,6 +1766,8 @@ PassRefPtr<CSSValue> CSSComputedStyleDeclaration::getPropertyCSSValue(int proper
         case CSSPropertyWebkitTransformOriginZ:
         case CSSPropertyWebkitTransition:
             break;
+        case CSSPropertyWebkitTapHighlightColor:
+            return CSSPrimitiveValue::createColor(style->tapHighlightColor().rgb());
 #if ENABLE(SVG)
         case CSSPropertyClipPath:
         case CSSPropertyClipRule:

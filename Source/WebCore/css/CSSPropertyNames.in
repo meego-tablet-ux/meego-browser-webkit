@@ -281,6 +281,7 @@ z-index
 -webkit-perspective-origin-x
 -webkit-perspective-origin-y
 -webkit-rtl-ordering
+-webkit-tap-highlight-color
 -webkit-text-combine
 -webkit-text-decorations-in-effect
 -webkit-text-emphasis

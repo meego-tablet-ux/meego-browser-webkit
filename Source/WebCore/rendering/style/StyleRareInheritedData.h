@@ -56,6 +56,7 @@ public:
     Color textStrokeColor;
     float textStrokeWidth;
     Color textFillColor;
+    Color tapHighlightColor;
     Color textEmphasisColor;
 
     ShadowData* textShadow; // Our text shadow information for shadowed text drawing.

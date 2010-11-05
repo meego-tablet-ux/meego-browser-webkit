@@ -785,7 +785,9 @@ public:
     bool isFlippedBlocksWritingMode() const { return writingMode() == RightToLeftWritingMode || writingMode() == BottomToTopWritingMode; }
 
     ESpeak speak() { return static_cast<ESpeak>(rareInheritedData->speak); }
-        
+
+    Color tapHighlightColor() const { return rareInheritedData->tapHighlightColor; }      
+  
 // attribute setter methods
 
     void setDisplay(EDisplay v) { noninherited_flags._effectiveDisplay = v; }
@@ -1126,6 +1128,8 @@ public:
     void setTextSizeAdjust(bool b) { SET_VAR(rareInheritedData, textSizeAdjust, b); }
     void setTextSecurity(ETextSecurity aTextSecurity) { SET_VAR(rareInheritedData, textSecurity, aTextSecurity); }
 
+    void setTapHighlightColor(const Color& v) { SET_VAR(rareInheritedData, tapHighlightColor, v); }
+
 #if ENABLE(SVG)
     const SVGRenderStyle* svgStyle() const { return m_svgStyle.get(); }
     SVGRenderStyle* accessSVGStyle() { return m_svgStyle.access(); }
@@ -1323,6 +1327,7 @@ public:
     static const Vector<StyleDashboardRegion>& initialDashboardRegions();
     static const Vector<StyleDashboardRegion>& noneDashboardRegions();
 #endif
+    static Color initialTapHighlightColor() { return Color::tap; }
 
 private:
     void inheritUnicodeBidiFrom(const RenderStyle* parent) { noninherited_flags._unicodeBidi = parent->noninherited_flags._unicodeBidi; }

@@ -5427,6 +5427,15 @@ void CSSStyleSelector::applyProperty(int id, CSSValue *value)
     case CSSPropertyWebkitMarqueeStyle:
         HANDLE_INHERIT_AND_INITIAL_AND_PRIMITIVE(marqueeBehavior, MarqueeBehavior)      
         return;
+    case CSSPropertyWebkitTapHighlightColor: {
+        HANDLE_INHERIT_AND_INITIAL(tapHighlightColor, TapHighlightColor);
+        if (!primitiveValue)
+            break;
+
+        Color col = getColorFromPrimitiveValue(primitiveValue).blendWithWhite();
+        m_style->setTapHighlightColor(col);
+        return;
+    }
 #if ENABLE(WCSS)
     case CSSPropertyWapMarqueeDir:
         HANDLE_INHERIT_AND_INITIAL(marqueeDirection, MarqueeDirection)

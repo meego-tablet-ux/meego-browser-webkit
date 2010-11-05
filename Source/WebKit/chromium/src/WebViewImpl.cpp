@@ -144,6 +144,10 @@
 #undef pow
 #include <cmath> // for std::pow
 
+#if defined(TOOLKIT_MEEGOTOUCH)
+#define CURSOR_RING_OUTER_DIAMETER 4 // SkFixedToScalar(SkIntToFixed(13)>>2) // 13/4 == 3.25
+#endif
+
 using namespace WebCore;
 
 namespace {
@@ -416,6 +420,88 @@ void WebViewImpl::mouseLeave(const WebMouseEvent& event)
         PlatformMouseEventBuilder(mainFrameImpl()->frameView(), event));
 }
 
+#if defined(TOOLKIT_MEEGOTOUCH)
+void WebViewImpl::touchStart(const WebTouchEvent& event)
+{
+    if (!mainFrameImpl() || !mainFrameImpl()->frameView())
+        return;
+
+    if (event.touchPointsLength < 1) 
+      return;
+
+    IntPoint point(event.touchPoints[0].position.x, event.touchPoints[0].position.y);
+    point = m_page->mainFrame()->view()->windowToContents(point);
+    HitTestResult result(m_page->mainFrame()->eventHandler()->hitTestResultAtPoint(point, false));
+    Node* hitNode = result.innerNonSharedNode();
+
+    if (result.isLiveLink()) {
+      IntRect nr = hitNode->getRect();
+      IntRect rc = m_page->mainFrame()->view()->contentsToWindow(nr);
+      m_cursorRings.append(nr);
+      IntRect damageRect(rc.x()- CURSOR_RING_OUTER_DIAMETER, rc.y()- CURSOR_RING_OUTER_DIAMETER,\
+			 rc.width()+2* CURSOR_RING_OUTER_DIAMETER, rc.height()+2* CURSOR_RING_OUTER_DIAMETER);
+      m_client->didInvalidateRect(damageRect);
+    }
+}
+
+void WebViewImpl::touchEnd(const WebTouchEvent& event)
+{
+    if (!mainFrameImpl() || !mainFrameImpl()->frameView())
+        return;
+
+    if (event.touchPointsLength < 1) 
+      return;
+
+    // clear previous cursor ring
+    while (!m_cursorRings.isEmpty())
+    {
+      IntRect ri = m_cursorRings[0];
+      IntRect rc = m_page->mainFrame()->view()->contentsToWindow(ri);
+      m_cursorRings.remove(0);
+      IntRect dr(rc.x()- CURSOR_RING_OUTER_DIAMETER, rc.y()- CURSOR_RING_OUTER_DIAMETER,\
+		 rc.width()+2* CURSOR_RING_OUTER_DIAMETER, rc.height()+2* CURSOR_RING_OUTER_DIAMETER);
+      m_client->didInvalidateRect(dr);
+    }
+}
+
+void WebViewImpl::touchMove(const WebTouchEvent& event)
+{
+    if (!mainFrameImpl() || !mainFrameImpl()->frameView())
+        return;
+
+    if (event.touchPointsLength < 1) 
+      return;
+    
+    if (m_cursorRings.isEmpty())
+      return;
+
+    IntPoint point(event.touchPoints[0].position.x, event.touchPoints[0].position.y);
+    point = m_page->mainFrame()->view()->windowToContents(point);
+
+    bool bInRegion = false;
+    for (int i=0; i<m_cursorRings.size(); i++)
+    {
+      if (m_cursorRings[i].contains(point) )
+      {
+	bInRegion = true;
+	break;
+      }
+    }
+    if (bInRegion) return;
+    
+    while (!m_cursorRings.isEmpty())
+    {
+      IntRect ri = m_cursorRings[0];
+      IntRect rc = m_page->mainFrame()->view()->contentsToWindow(ri);
+      m_cursorRings.remove(0);
+      IntRect dr(rc.x()- CURSOR_RING_OUTER_DIAMETER, rc.y()- CURSOR_RING_OUTER_DIAMETER,\
+		 rc.width()+2* CURSOR_RING_OUTER_DIAMETER, rc.height()+2* CURSOR_RING_OUTER_DIAMETER);
+      m_client->didInvalidateRect(dr);
+    }
+
+}
+#endif
+
 void WebViewImpl::mouseDown(const WebMouseEvent& event)
 {
     if (!mainFrameImpl() || !mainFrameImpl()->frameView())
@@ -439,6 +525,28 @@ void WebViewImpl::mouseDown(const WebMouseEvent& event)
         point = m_page->mainFrame()->view()->windowToContents(point);
         HitTestResult result(m_page->mainFrame()->eventHandler()->hitTestResultAtPoint(point, false));
         Node* hitNode = result.innerNonSharedNode();
+
+#if defined(TOOLKIT_MEEGOTOUCH)
+        // clear previous cursor ring
+        while (!m_cursorRings.isEmpty())
+        {
+            IntRect ri = m_cursorRings[0];
+            IntRect rc = m_page->mainFrame()->view()->contentsToWindow(ri);
+            m_cursorRings.remove(0);
+            IntRect dr(rc.x()- CURSOR_RING_OUTER_DIAMETER, rc.y()- CURSOR_RING_OUTER_DIAMETER,\
+                 rc.width()+2* CURSOR_RING_OUTER_DIAMETER, rc.height()+2* CURSOR_RING_OUTER_DIAMETER);
+            m_client->didInvalidateRect(dr);
+        }
+
+        if (result.isLiveLink()) {
+            IntRect nr = hitNode->getRect();
+            IntRect rc = m_page->mainFrame()->view()->contentsToWindow(nr);
+            m_cursorRings.append(nr);
+            IntRect damageRect(rc.x()- CURSOR_RING_OUTER_DIAMETER, rc.y()- CURSOR_RING_OUTER_DIAMETER,\
+                   rc.width()+2* CURSOR_RING_OUTER_DIAMETER, rc.height()+2* CURSOR_RING_OUTER_DIAMETER);
+            m_client->didInvalidateRect(damageRect);
+        }
+#endif
 
         // Take capture on a mouse down on a plugin so we can send it mouse events.
         if (hitNode && hitNode->renderer() && hitNode->renderer()->isEmbeddedObject())
@@ -564,6 +672,23 @@ void WebViewImpl::mouseUp(const WebMouseEvent& event)
     if (event.button == WebMouseEvent::ButtonRight)
         mouseContextMenu(event);
 #endif
+
+#if defined(TOOLKIT_MEEGOTOUCH)
+    if (event.button == WebMouseEvent::ButtonLeft)
+    {
+      while (!m_cursorRings.isEmpty())
+      {
+          IntRect ri = m_cursorRings[0];
+          IntRect rc = m_page->mainFrame()->view()->contentsToWindow(ri);
+          m_cursorRings.remove(0);
+          IntRect dr(rc.x()- CURSOR_RING_OUTER_DIAMETER, rc.y()- CURSOR_RING_OUTER_DIAMETER,\
+               rc.width()+2* CURSOR_RING_OUTER_DIAMETER, rc.height()+2* CURSOR_RING_OUTER_DIAMETER);
+          m_client->didInvalidateRect(dr);
+      }
+    }
+    
+#endif
+
 }
 
 bool WebViewImpl::mouseWheel(const WebMouseWheelEvent& event)
@@ -742,6 +867,7 @@ bool WebViewImpl::touchEvent(const WebTouchEvent& event)
 
     PlatformTouchEventBuilder touchEventBuilder(mainFrameImpl()->frameView(), event);
     return mainFrameImpl()->frame()->eventHandler()->handleTouchEvent(touchEventBuilder);
+
 }
 #endif
 
@@ -1103,7 +1229,40 @@ void WebViewImpl::paint(WebCanvas* canvas, const WebRect& rect)
         if (webframe)
             webframe->paint(canvas, rect);
     }
+#if defined(TOOLKIT_MEEGOTOUCH)
+    drawLinkTapHighlight(canvas, rect);
+#endif
 }
+
+#if defined(TOOLKIT_MEEGOTOUCH)
+void WebViewImpl::drawLinkTapHighlight(WebCanvas* canvas, const WebRect& rect)
+{
+  if (!m_cursorRings.size())
+      return;
+
+#if WEBKIT_USING_CG
+    GraphicsContext gc(canvas);
+    LocalCurrentGraphicsContext localContext(&gc);
+#elif WEBKIT_USING_SKIA
+    PlatformContextSkia context(canvas);
+
+    // PlatformGraphicsContext is actually a pointer to PlatformContextSkia
+    GraphicsContext gc(reinterpret_cast<PlatformGraphicsContext*>(&context));
+#else
+    notImplemented();
+#endif
+
+    Vector<IntRect> mRings;
+    int rectCount = m_cursorRings.size();
+    for (int i=0; i<rectCount; i++)
+    {
+      mRings.append(m_page->mainFrame()->view()->contentsToWindow(m_cursorRings[i]));
+    }
+    gc.drawCursorRing(mRings);
+
+}
+#endif
+
 
 void WebViewImpl::themeChanged()
 {
@@ -1236,8 +1395,26 @@ bool WebViewImpl::handleInputEvent(const WebInputEvent& inputEvent)
 
 #if ENABLE(TOUCH_EVENTS)
     case WebInputEvent::TouchStart:
+#if defined(TOOLKIT_MEEGOTOUCH)
+        touchStart(*static_cast<const WebTouchEvent*>(&inputEvent));
+#endif
+        handled = touchEvent(*static_cast<const WebTouchEvent*>(&inputEvent));
+	break;
+    
     case WebInputEvent::TouchMove:
+#if defined(TOOLKIT_MEEGOTOUCH)
+        touchMove(*static_cast<const WebTouchEvent*>(&inputEvent));
+#endif
+        handled = touchEvent(*static_cast<const WebTouchEvent*>(&inputEvent));
+	      break;
+    
     case WebInputEvent::TouchEnd:
+#if defined(TOOLKIT_MEEGOTOUCH)
+        touchEnd(*static_cast<const WebTouchEvent*>(&inputEvent));
+#endif
+        handled = touchEvent(*static_cast<const WebTouchEvent*>(&inputEvent));
+	      break;
+    
     case WebInputEvent::TouchCancel:
         handled = touchEvent(*static_cast<const WebTouchEvent*>(&inputEvent));
         break;

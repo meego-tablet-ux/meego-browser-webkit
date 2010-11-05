@@ -32,6 +32,7 @@ namespace WebCore {
 
 StyleRareInheritedData::StyleRareInheritedData()
     : textStrokeWidth(RenderStyle::initialTextStrokeWidth())
+    , tapHighlightColor(RenderStyle::initialTapHighlightColor())
     , textShadow(0)
     , indent(RenderStyle::initialTextIndent())
     , m_effectiveZoom(RenderStyle::initialZoom())
@@ -63,6 +64,7 @@ StyleRareInheritedData::StyleRareInheritedData(const StyleRareInheritedData& o)
     , textStrokeColor(o.textStrokeColor)
     , textStrokeWidth(o.textStrokeWidth)
     , textFillColor(o.textFillColor)
+    , tapHighlightColor(o.tapHighlightColor)
     , textEmphasisColor(o.textEmphasisColor)
     , textShadow(o.textShadow ? new ShadowData(*o.textShadow) : 0)
     , highlight(o.highlight)
@@ -129,6 +131,7 @@ bool StyleRareInheritedData::operator==(const StyleRareInheritedData& o) const
         && nbspMode == o.nbspMode
         && khtmlLineBreak == o.khtmlLineBreak
         && textSizeAdjust == o.textSizeAdjust
+        && tapHighlightColor == o.tapHighlightColor
         && resize == o.resize
         && userSelect == o.userSelect
         && colorSpace == o.colorSpace

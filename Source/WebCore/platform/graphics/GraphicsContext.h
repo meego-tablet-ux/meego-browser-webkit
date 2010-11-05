@@ -383,6 +383,9 @@ namespace WebCore {
 
         void drawFocusRing(const Vector<IntRect>&, int width, int offset, const Color&);
         void drawFocusRing(const Path&, int width, int offset, const Color&);
+#if defined(TOOLKIT_MEEGOTOUCH)
+        void drawCursorRing(const Vector<IntRect>&);
+#endif
 
         void setLineCap(LineCap);
         void setLineDash(const DashArray&, float dashOffset);

@@ -1962,6 +1962,13 @@ bool CSSParser::parseValue(int propId, bool important)
     case CSSPropertyTextOverline:
     case CSSPropertyTextUnderline:
         return false;
+
+    case CSSPropertyWebkitTapHighlightColor:
+        parsedValue = parseColor();
+        if (parsedValue)
+            m_valueList->next();
+        break;
+
 #if ENABLE(WCSS)
     case CSSPropertyWapInputFormat:
         validPrimitive = true;

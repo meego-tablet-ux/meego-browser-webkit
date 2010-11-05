@@ -258,6 +258,7 @@ public:
 
 #if defined(TOOLKIT_MEEGOTOUCH)
 	virtual void queryNodeTypeAtPoint(int x, int y, bool &is_embedded_object, bool &is_editable_text);
+	virtual void drawLinkTapHighlight(WebCanvas* canvas, const WebRect& rect); 
 #endif
 
     // Handles context menu events orignated via the the keyboard. These
@@ -537,6 +538,15 @@ private:
 #if ENABLE(INPUT_SPEECH)
     OwnPtr<SpeechInputClientImpl> m_speechInputClient;
 #endif
+
+
+#if defined(TOOLKIT_MEEGOTOUCH)
+    Vector<WebCore::IntRect> m_cursorRings;
+    void touchStart(const WebTouchEvent& event);
+    void touchMove(const WebTouchEvent& event);
+    void touchEnd(const WebTouchEvent& event);
+#endif
+
     // If we attempt to fetch the on-screen GraphicsContext3D before
     // the compositor has been turned on, we need to instantiate it
     // early. This member holds on to the GC3D in this case.

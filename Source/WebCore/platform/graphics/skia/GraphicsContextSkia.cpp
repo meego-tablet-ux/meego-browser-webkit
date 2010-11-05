@@ -59,6 +59,39 @@
 
 using namespace std;
 
+enum Flavor {
+  NORMAL_FLAVOR,
+  FAKE_FLAVOR,
+  NORMAL_ANIMATING,
+  FAKE_ANIMATING,
+  ANIMATING_COUNT = 2
+};
+
+const static SkColor cursorOuterColors[] = {
+    SkColorSetARGB(0xff, 0x3F, 0xB3, 0x08), // normal ring select
+    SkColorSetARGB(0xff, 0xb0, 0x46, 0x00), // fake ring select, for phone, email, text
+    SkColorSetARGB(0xff, 0x5C, 0xAD, 0x0A), // normal ring pressed
+    SkColorSetARGB(0xff, 0xc0, 0x36, 0x00)  // fake ring pressed
+};
+
+const static SkColor cursorInnerColors[] = {
+    SkColorSetARGB(0xff, 0x92, 0xFE, 0x30), // normal ring select
+    SkColorSetARGB(0xff, 0xd9, 0x8c, 0x00), // fake ring select, for phone, email, text
+    SkColorSetARGB(0xff, 0xBD, 0xFE, 0x3A), // normal ring pressed
+    SkColorSetARGB(0xff, 0xe9, 0x7c, 0x00)  // fake ring pressed
+};
+
+const static SkColor cursorPressedColors[] = {
+    SkColorSetARGB(0x80, 0xC6, 0xFF, 0x4B), // normal ring pressed
+    SkColorSetARGB(0x80, 0xe9, 0x7c, 0x00)  // fake ring pressed
+};
+
+#define CURSOR_RING_ROUNDEDNESS SkIntToScalar(5) // used to draw corners
+#define CURSOR_RING_INNER_DIAMETER SkFixedToScalar(SkIntToFixed(3)>>1) // 3/2 == 1.5
+#define CURSOR_RING_OUTER_OUTSET 2 // used to inflate rects added to region
+// used to inval rectangle enclosing pressed state of ring
+#define CURSOR_RING_OUTER_DIAMETER SkFixedToScalar(SkIntToFixed(13)>>2) // 13/4 == 3.25
+
 namespace WebCore {
 
 namespace {
@@ -534,7 +567,7 @@ void GraphicsContext::drawFocusRing(const Vector<IntRect>& rects, int /* width *
 
     platformContext()->prepareForSoftwareDraw();
     SkRegion focusRingRegion;
-    const SkScalar focusRingOutset = WebCoreFloatToSkScalar(0.5);
+    const SkScalar focusRingOutset = WebCoreFloatToSkScalar(2.5);
     for (unsigned i = 0; i < rectCount; i++) {
         SkIRect r = rects[i];
         r.inset(-focusRingOutset, -focusRingOutset);
@@ -551,6 +584,50 @@ void GraphicsContext::drawFocusRing(const Vector<IntRect>& rects, int /* width *
     paint.setPathEffect(new SkCornerPathEffect(focusRingOutset * 2))->unref();
     focusRingRegion.getBoundaryPath(&path);
     platformContext()->canvas()->drawPath(path, paint);
+}
+
+void GraphicsContext::drawCursorRing(const Vector<IntRect>& rects)
+{
+    if (paintingDisabled())
+        return;
+
+    unsigned rectCount = rects.size();
+    if (!rectCount)
+        return;
+
+    platformContext()->prepareForSoftwareDraw();
+
+    SkRegion rgn;
+    SkPath path;
+    for (unsigned i = 0; i < rectCount; i++)
+    {
+        SkRect  r(rects[i]);
+        SkIRect ir;
+
+        r.round(&ir);
+        ir.inset(-CURSOR_RING_OUTER_OUTSET, -CURSOR_RING_OUTER_OUTSET);
+        rgn.op(ir, SkRegion::kUnion_Op);
+    }
+    rgn.getBoundaryPath(&path);
+
+    SkPaint paint;
+    paint.setAntiAlias(true);
+    paint.setPathEffect(new SkCornerPathEffect(CURSOR_RING_ROUNDEDNESS))->unref();
+
+    Flavor m_flavor = NORMAL_FLAVOR;
+    SkCanvas* canvas = platformContext()->canvas();
+
+    if (m_flavor >= NORMAL_ANIMATING) { // pressed
+        paint.setColor(cursorPressedColors[m_flavor - NORMAL_ANIMATING]);
+        canvas->drawPath(path, paint);
+    }
+    paint.setStyle(SkPaint::kStroke_Style);
+    paint.setStrokeWidth(CURSOR_RING_OUTER_DIAMETER);
+    paint.setColor(cursorOuterColors[m_flavor]);
+    canvas->drawPath(path, paint);
+    paint.setStrokeWidth(CURSOR_RING_INNER_DIAMETER);
+    paint.setColor(cursorInnerColors[m_flavor]);
+    canvas->drawPath(path, paint);
 }
 
 // This is only used to draw borders.
