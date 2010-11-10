@@ -66,12 +66,14 @@ class WebURL;
 class WebURLLoader;
 class WebURLRequest;
 class WebView;
+
 struct WebConsoleMessage;
 struct WebFindOptions;
 struct WebPoint;
 struct WebRect;
 struct WebScriptSource;
 struct WebSize;
+struct WebPoint;
 struct WebURLLoaderOptions;
 
 template <typename T> class WebVector;
@@ -152,6 +154,7 @@ public:
     // The scroll offset from the top-left corner of the frame in pixels.
     virtual WebSize scrollOffset() const = 0;
     virtual void setScrollOffset(const WebSize&) = 0;
+    virtual void setScrollPosition(WebPoint point) = 0;
 
     // The size of the contents area.
     virtual WebSize contentsSize() const = 0;

@@ -74,6 +74,7 @@ public:
     virtual WebString encoding() const;
     virtual WebSize scrollOffset() const;
     virtual void setScrollOffset(const WebSize&);
+    virtual void setScrollPosition(WebPoint point);
     virtual WebSize contentsSize() const;
     virtual int contentsPreferredWidth() const;
     virtual int documentElementScrollHeight() const;

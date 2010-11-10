@@ -557,6 +557,14 @@ WebString WebFrameImpl::encoding() const
     return frame()->document()->loader()->writer()->encoding();
 }
 
+void WebFrameImpl::setScrollPosition(WebPoint point)
+{
+    IntPoint pt(point.x, point.y);
+    FrameView* view = frameView();
+    if (view)
+      view->setScrollPosition(pt);
+}
+
 WebSize WebFrameImpl::scrollOffset() const
 {
     FrameView* view = frameView();
