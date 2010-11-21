@@ -1998,6 +1998,19 @@ void WebFrameImpl::layout()
         view->updateLayoutAndStyleIfNeededRecursive();
 }
 
+void WebFrameImpl::paintContent(WebCanvas* canvas, const WebRect& rect)
+{
+    PlatformContextSkia context(canvas);
+    GraphicsContext gc(&context);
+
+    gc.save();
+    if (m_frame->document() && frameView()) {
+        m_frame->view()->paintContents(&gc, rect);
+    }
+
+    gc.restore();
+}
+
 void WebFrameImpl::paintWithContext(GraphicsContext& gc, const WebRect& rect)
 {
     IntRect dirtyRect(rect);

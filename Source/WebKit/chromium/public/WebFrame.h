@@ -155,6 +155,7 @@ public:
     virtual WebSize scrollOffset() const = 0;
     virtual void setScrollOffset(const WebSize&) = 0;
     virtual void setScrollPosition(WebPoint point) = 0;
+    virtual void paintContent(WebCanvas* canvas, const WebRect& rect) = 0;
 
     // The size of the contents area.
     virtual WebSize contentsSize() const = 0;
