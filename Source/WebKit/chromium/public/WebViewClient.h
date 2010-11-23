@@ -233,6 +233,10 @@ public:
     // the given frame. Additional context data is supplied.
     virtual void showContextMenu(WebFrame*, const WebContextMenuData&) { }
 
+#if defined(TOOLKIT_MEEGOTOUCH)
+    virtual void UpdateSelectionRange(WebPoint&, WebPoint&, bool set) { }
+#endif
+
     // Called when a drag-n-drop operation should begin.
     virtual void startDragging(
         const WebDragData&, WebDragOperationsMask, const WebImage&, const WebPoint&) { }
