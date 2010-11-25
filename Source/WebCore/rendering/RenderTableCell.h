@@ -54,6 +54,10 @@ public:
     Length styleOrColLogicalWidth() const;
 
     virtual void computePreferredLogicalWidths();
+#ifdef ANDROID_LAYOUT
+    // RenderTableSection needs to access this in setCellWidths()
+    int getVisibleWidth() { return m_visibleWidth; }
+#endif
 
     void updateLogicalWidth(int);
 

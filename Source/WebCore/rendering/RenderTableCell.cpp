@@ -35,6 +35,11 @@
 #include "RenderView.h"
 #include "TransformState.h"
 
+#ifdef ANDROID_LAYOUT
+#include "Document.h"
+#include "Settings.h"
+#endif
+
 using namespace std;
 
 namespace WebCore {
@@ -146,6 +151,15 @@ void RenderTableCell::computePreferredLogicalWidths()
 
 void RenderTableCell::computeLogicalWidth()
 {
+#ifdef ANDROID_LAYOUT
+    if (view()->frameView()) {
+        const Settings* settings = document()->settings();
+        ASSERT(settings);
+        if (settings->layoutAlgorithm() == Settings::kLayoutFitColumnToScreen) {
+            m_visibleWidth = view()->frameView()->screenWidth();
+        }
+    }
+#endif
 }
 
 void RenderTableCell::updateLogicalWidth(int w)

@@ -39,6 +39,10 @@
 #include "RenderLayerCompositor.h"
 #endif
 
+#ifdef ANDROID_LAYOUT
+#include "Settings.h"
+#endif
+
 namespace WebCore {
 
 RenderView::RenderView(Node* node, FrameView* view)
@@ -83,6 +87,16 @@ void RenderView::computeLogicalWidth()
 {
     if (!printing() && m_frameView)
         setLogicalWidth(viewLogicalWidth());
+#ifdef ANDROID_LAYOUT
+    const Settings * settings = document()->settings();
+    ASSERT(settings);
+    if (settings->layoutAlgorithm() == Settings::kLayoutFitColumnToScreen)
+        m_visibleWidth = m_frameView->screenWidth();
+    if (settings->useWideViewport() &&
+	width() < minPreferredLogicalWidth())
+
+        setLogicalWidth(m_minPreferredLogicalWidth);
+#endif
 }
 
 void RenderView::computePreferredLogicalWidths()

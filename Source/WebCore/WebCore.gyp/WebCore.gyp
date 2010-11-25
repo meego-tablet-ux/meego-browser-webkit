@@ -113,6 +113,14 @@
         'cflags': ['-Wno-uninitialized'],
       },
     }],
+    ['OS=="linux"', {
+      'target_defaults': {
+        'defines': [
+          'ANDROID_LAYOUT=1',
+        ],
+      }
+    }],
+
   ],  # conditions
 
   'variables': {

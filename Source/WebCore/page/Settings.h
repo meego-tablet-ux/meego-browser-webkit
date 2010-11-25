@@ -55,11 +55,31 @@ namespace WebCore {
     public:
         Settings(Page*);
 
+#ifdef ANDROID_LAYOUT
+        // FIXME: How do we determine the margins other than guessing?
+        #define ANDROID_SSR_MARGIN_PADDING  3
+        #define ANDROID_FCTS_MARGIN_PADDING  10
+
+        enum LayoutAlgorithm {
+            kLayoutNormal,
+            kLayoutSSR,
+            kLayoutFitColumnToScreen
+        };
+#endif
+
         void setStandardFontFamily(const AtomicString&);
         const AtomicString& standardFontFamily() const { return m_standardFontFamily; }
 
         void setFixedFontFamily(const AtomicString&);
         const AtomicString& fixedFontFamily() const { return m_fixedFontFamily; }
+
+#ifdef ANDROID_LAYOUT
+        LayoutAlgorithm layoutAlgorithm() const { return m_layoutAlgorithm; }
+        void setLayoutAlgorithm(LayoutAlgorithm algorithm) { m_layoutAlgorithm = algorithm; }
+
+        bool useWideViewport() const { return m_useWideViewport; }
+        void setUseWideViewport(bool use) { m_useWideViewport = use; }
+#endif
 
         void setSerifFontFamily(const AtomicString&);
         const AtomicString& serifFontFamily() const { return m_serifFontFamily; }
@@ -407,6 +427,9 @@ namespace WebCore {
         AtomicString m_sansSerifFontFamily;
         AtomicString m_cursiveFontFamily;
         AtomicString m_fantasyFontFamily;
+#ifdef ANDROID_LAYOUT
+        LayoutAlgorithm m_layoutAlgorithm;
+#endif
         EditableLinkBehavior m_editableLinkBehavior;
         TextDirectionSubmenuInclusionBehavior m_textDirectionSubmenuInclusionBehavior;
         int m_minimumFontSize;
@@ -497,6 +520,9 @@ namespace WebCore {
         bool m_useQuickLookResourceCachingQuirks : 1;
         bool m_forceCompositingMode : 1;
         bool m_shouldInjectUserScriptsInInitialEmptyDocument : 1;
+#ifdef ANDROID_LAYOUT
+        bool m_useWideViewport : 1;
+#endif
 
 #if USE(SAFARI_THEME)
         static bool gShouldPaintNativeControls;

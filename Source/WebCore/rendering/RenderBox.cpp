@@ -51,6 +51,9 @@
 #include "TransformState.h"
 #include <algorithm>
 #include <math.h>
+#ifdef ANDROID_LAYOUT
+#include "Settings.h"
+#endif
 
 #if ENABLE(WML)
 #include "WMLNames.h"
@@ -70,6 +73,9 @@ bool RenderBox::s_hadOverflowClip = false;
 
 RenderBox::RenderBox(Node* node)
     : RenderBoxModelObject(node)
+#ifdef ANDROID_LAYOUT
+    , m_visibleWidth(0)
+#endif
     , m_marginLeft(0)
     , m_marginRight(0)
     , m_marginTop(0)
@@ -1508,6 +1514,15 @@ void RenderBox::repaintDuringLayoutIfMoved(const IntRect& rect)
 
 void RenderBox::computeLogicalWidth()
 {
+#ifdef ANDROID_LAYOUT
+    if (view()->frameView()) {
+        const Settings* settings = document()->settings();
+        ASSERT(settings);
+        if (settings->layoutAlgorithm() == Settings::kLayoutFitColumnToScreen) {
+            m_visibleWidth = view()->frameView()->screenWidth();
+        }
+    }
+#endif
     if (isPositioned()) {
         // FIXME: This calculation is not patched for block-flow yet.
         // https://bugs.webkit.org/show_bug.cgi?id=46500
@@ -1548,8 +1563,25 @@ void RenderBox::computeLogicalWidth()
         // just calculate margins
         setMarginStart(style()->marginStart().calcMinValue(containerLogicalWidth));
         setMarginEnd(style()->marginEnd().calcMinValue(containerLogicalWidth));
+#ifdef ANDROID_LAYOUT
+        if (treatAsReplaced) {
+#else
         if (treatAsReplaced)
+#endif
             setLogicalWidth(max(logicalWidthLength.value() + borderAndPaddingLogicalWidth(), minPreferredLogicalWidth()));
+
+#ifdef ANDROID_LAYOUT
+            // in SSR mode with replaced box, if the box width is wider than the container width,
+            // it will be shrinked to fit to the container.
+            if (containerLogicalWidth &&
+                (width() + m_marginLeft + m_marginRight) > containerLogicalWidth &&
+                document()->frame()->settings()->layoutAlgorithm() == Settings::kLayoutSSR) {
+                m_marginLeft = m_marginRight = 0;
+                setWidth(containerLogicalWidth);
+                m_minPreferredLogicalWidth = m_maxPreferredLogicalWidth = containerLogicalWidth;
+            }
+        }
+#endif
         return;
     }
 

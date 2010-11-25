@@ -82,12 +82,18 @@ static EditingBehaviorType editingBehaviorTypeForPlatform()
 
 Settings::Settings(Page* page)
     : m_page(page)
+#ifdef ANDROID_LAYOUT
+    , m_layoutAlgorithm(kLayoutFitColumnToScreen)
+#endif
     , m_editableLinkBehavior(EditableLinkDefaultBehavior)
     , m_textDirectionSubmenuInclusionBehavior(TextDirectionSubmenuAutomaticallyIncluded)
     , m_minimumFontSize(0)
     , m_minimumLogicalFontSize(0)
     , m_defaultFontSize(0)
     , m_defaultFixedFontSize(0)
+#ifdef ANDROID_LAYOUT
+    , m_useWideViewport(false)
+#endif
     , m_validationMessageTimerMagnification(50)
     , m_maximumDecodedImageSize(numeric_limits<size_t>::max())
 #if ENABLE(DOM_STORAGE)

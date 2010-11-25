@@ -57,6 +57,7 @@ RenderImage::RenderImage(Node* node)
     : RenderReplaced(node, IntSize(0, 0))
     , m_needsToSetSizeForAltText(false)
 {
+    m_imageResource = NULL;
     updateAltText();
 
     view()->frameView()->setIsVisuallyNonEmpty();

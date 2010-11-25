@@ -38,6 +38,9 @@
 #include "RenderTableCell.h"
 #include "RenderTableCol.h"
 #include "RenderTableSection.h"
+#ifdef ANDROID_LAYOUT
+#include "Settings.h"
+#endif
 #include "RenderView.h"
 
 using namespace std;
@@ -210,6 +213,15 @@ void RenderTable::removeChild(RenderObject* oldChild)
 
 void RenderTable::computeLogicalWidth()
 {
+#ifdef ANDROID_LAYOUT
+    if (view()->frameView()) {
+        const Settings* settings = document()->settings();
+        ASSERT(settings);
+        if (settings->layoutAlgorithm() == Settings::kLayoutFitColumnToScreen) {
+            m_visibleWidth = view()->frameView()->screenWidth();
+        }
+    }
+#endif
     if (isPositioned())
         computePositionedLogicalWidth();
 
@@ -272,7 +284,7 @@ void RenderTable::layout()
         return;
 
     recalcSectionsIfNeeded();
-        
+
     LayoutRepainter repainter(*this, checkForRepaintDuringLayout());
     LayoutStateMaintainer statePusher(view(), this, IntSize(x(), y()), style()->isFlippedBlocksWritingMode());
 
@@ -280,9 +292,20 @@ void RenderTable::layout()
     m_overflow.clear();
 
     initMaxMarginValues();
+
+#ifdef ANDROID_LAYOUT
+    bool relayoutChildren = false;
+    int oldVisibleWidth = m_visibleWidth;
+#endif
     
     int oldLogicalWidth = logicalWidth();
     computeLogicalWidth();
+
+#ifdef ANDROID_LAYOUT
+    if (oldVisibleWidth != m_visibleWidth
+        && document()->settings()->layoutAlgorithm() == Settings::kLayoutFitColumnToScreen)
+        relayoutChildren = true;
+#endif
 
     if (m_caption && logicalWidth() != oldLogicalWidth)
         m_caption->setNeedsLayout(true, false);
@@ -302,6 +325,16 @@ void RenderTable::layout()
     bool collapsing = collapseBorders();
 
     for (RenderObject* child = firstChild(); child; child = child->nextSibling()) {
+#ifdef ANDROID_LAYOUT
+        if (relayoutChildren) {
+            child->setNeedsLayout(true, false);
+            if (!child->isTableSection()) {
+                child->layoutIfNeeded();
+                continue;
+            }
+            // fall through
+        }
+#endif
         if (child->isTableSection()) {
             child->layoutIfNeeded();
             RenderTableSection* section = toRenderTableSection(child);

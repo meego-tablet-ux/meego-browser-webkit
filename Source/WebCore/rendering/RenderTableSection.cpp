@@ -37,6 +37,10 @@
 #include <limits>
 #include <wtf/HashSet.h>
 #include <wtf/Vector.h>
+#ifdef ANDROID_LAYOUT
+#include "Frame.h"
+#include "Settings.h"
+#endif
 
 using namespace std;
 
@@ -257,7 +261,17 @@ void RenderTableSection::setCellLogicalWidths()
     Vector<int>& columnPos = table()->columnPositions();
 
     LayoutStateMaintainer statePusher(view());
-    
+
+#ifdef ANDROID_LAYOUT
+    int visibleWidth = 0;
+    if (view()->frameView()) {
+        const Settings* settings = document()->settings();
+        ASSERT(settings);
+        if (settings->layoutAlgorithm() == Settings::kLayoutFitColumnToScreen)
+            visibleWidth = view()->frameView()->screenWidth();
+    }
+#endif
+
     for (int i = 0; i < m_gridRows; i++) {
         Row& row = *m_grid[i].row;
         int cols = row.size();
@@ -274,8 +288,19 @@ void RenderTableSection::setCellLogicalWidths()
                 endCol++;
             }
             int w = columnPos[endCol] - columnPos[j] - table()->hBorderSpacing();
+#ifdef ANDROID_LAYOUT
+            if (table()->isSingleColumn()) {
+                int b = table()->collapseBorders() ?
+                    0 : table()->paddingLeft() + table()->paddingRight() + 2 * table()->hBorderSpacing();
+                w = table()->width() - (table()->borderLeft() + table()->borderRight() + b);
+            }
+#endif
             int oldLogicalWidth = cell->logicalWidth();
+#ifdef ANDROID_LAYOUT
+            if (w != oldLogicalWidth || (visibleWidth > 0 && visibleWidth != cell->getVisibleWidth())) {
+#else
             if (w != oldLogicalWidth) {
+#endif
                 cell->setNeedsLayout(true);
                 if (!table()->selfNeedsLayout() && cell->checkForRepaintDuringLayout()) {
                     if (!statePusher.didPush()) {
@@ -285,6 +310,9 @@ void RenderTableSection::setCellLogicalWidths()
                     }
                     cell->repaint();
                 }
+#ifdef ANDROID_LAYOUT
+                if (w != oldLogicalWidth)
+#endif
                 cell->updateLogicalWidth(w);
             }
         }
@@ -300,6 +328,15 @@ int RenderTableSection::calcRowLogicalHeight()
 #endif
 
     ASSERT(!needsLayout());
+#ifdef ANDROID_LAYOUT
+    if (table()->isSingleColumn()) {
+        int height = 0;
+        int spacing = table()->vBorderSpacing();
+        for (int r = 0; r < m_gridRows; r++)
+            height += m_grid[r].logicalHeight.calcMinValue(0) + (m_grid[r].rowRenderer ? spacing : 0);
+        return height;
+    }
+#endif
 
     RenderTableCell* cell;
 
@@ -415,6 +452,56 @@ int RenderTableSection::layoutRows(int toAdd)
 #endif
 
     ASSERT(!needsLayout());
+#ifdef ANDROID_LAYOUT
+    if (table()->isSingleColumn()) {
+        int totalRows = m_gridRows;
+        int hspacing = table()->hBorderSpacing();
+        int vspacing = table()->vBorderSpacing();
+        int rHeight = vspacing;
+
+        int leftOffset = hspacing;
+
+        int nEffCols = table()->numEffCols();
+        for (int r = 0; r < totalRows; r++) {
+            for (int c = 0; c < nEffCols; c++) {
+                CellStruct current = cellAt(r, c);
+                RenderTableCell* cell = current.primaryCell();
+
+                if (!cell || current.inColSpan)
+                    continue;
+                if (r > 0 && (cellAt(r-1, c).primaryCell() == cell))
+                    continue;
+
+//                cell->setCellTopExtra(0);
+//                cell->setCellBottomExtra(0);
+
+                int oldCellX = cell->x();
+                int oldCellY = cell->y();
+
+                if (style()->direction() == RTL) {
+                    cell->setX(table()->width());
+                    cell->setY(rHeight);
+                } else {
+                    cell->setX(leftOffset);
+                    cell->setY(rHeight);
+                }
+
+                // If the cell moved, we have to repaint it as well as any floating/positioned
+                // descendants.  An exception is if we need a layout.  In this case, we know we're going to
+                // repaint ourselves (and the cell) anyway.
+                if (!table()->selfNeedsLayout() && cell->checkForRepaintDuringLayout()) {
+//                    IntRect cellRect(oldCellX, oldCellY - cell->borderTopExtra() , cell->width(), cell->height());
+                    IntRect cellRect(oldCellX, oldCellY, cell->width(), cell->height());
+                    cell->repaintDuringLayoutIfMoved(cellRect);
+                }
+                rHeight += cell->height() + vspacing;
+            }
+        }
+
+        setHeight(rHeight);
+        return height();
+    }
+#endif
 
     int rHeight;
     int rindx;
@@ -955,6 +1042,23 @@ void RenderTableSection::paintObject(PaintInfo& paintInfo, int tx, int ty)
 
     PaintPhase paintPhase = paintInfo.phase;
 
+#ifdef ANDROID_LAYOUT
+    unsigned int startrow = 0;
+    unsigned int endrow = totalRows;
+    unsigned int startcol = 0;
+    unsigned int endcol = totalCols;
+    if (table()->isSingleColumn()) {
+        // FIXME: should we be smarter too?
+    } else {
+    // FIXME: possible to rollback to the common tree.
+    // rowPos size is set in calcRowHeight(), which is called from table layout().
+    // BUT RenderTableSection is init through parsing. On a slow device, paint() as
+    // the result of layout() can come after the next parse() as everything is triggered
+    // by timer. So we have to check rowPos before using it.
+    if (m_rowPos.size() != (totalRows + 1))
+        return;
+#endif
+
     int os = 2 * maximalOutlineSize(paintPhase);
     unsigned startrow = 0;
     unsigned endrow = totalRows;
@@ -1007,6 +1111,10 @@ void RenderTableSection::paintObject(PaintInfo& paintInfo, int tx, int ty)
         if (!endcol && columnPos[0] - table()->outerBorderStart() <= end)
             ++endcol;
     }
+#ifdef ANDROID_LAYOUT
+    }
+#endif
+
     if (startcol < endcol) {
         if (!m_hasMultipleCellLevels) {
             // Draw the dirty cells in the order that they appear.

@@ -272,6 +272,8 @@ public:
 
     static void selectWordAroundPosition(WebCore::Frame*, WebCore::VisiblePosition);
 
+    int screenWidth() const { return m_screenWidth; }
+
 private:
     class DeferredScopeStringMatches;
     friend class DeferredScopeStringMatches;
@@ -416,6 +418,8 @@ private:
     // Ensure we don't overwrite valid history data during same document loads
     // from HistoryItems
     bool m_inSameDocumentHistoryLoad;
+
+    int m_screenWidth;
 };
 
 } // namespace WebKit

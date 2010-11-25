@@ -121,6 +121,10 @@ public:
     int calcBorderEnd() const;
     void recalcBordersInRowDirection();
 
+#ifdef ANDROID_LAYOUT
+    void clearSingleColumn() { m_singleColumn = false; }
+    bool isSingleColumn() const { return m_singleColumn; }
+#endif
     virtual void addChild(RenderObject* child, RenderObject* beforeChild = 0);
 
     struct ColumnStruct {
@@ -256,6 +260,9 @@ private:
     mutable bool m_hasColElements : 1;
     mutable bool m_needsSectionRecalc : 1;
     
+#ifdef ANDROID_LAYOUT
+    bool m_singleColumn;        // BS(Grace): should I use compact version?
+#endif
     short m_hSpacing;
     short m_vSpacing;
     int m_borderStart;

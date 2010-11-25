@@ -457,6 +457,10 @@ private:
     IntRect m_frameRect;
 
 protected:
+#ifdef ANDROID_LAYOUT
+    int m_visibleWidth;
+#endif
+
     int m_marginLeft;
     int m_marginRight;
     int m_marginTop;

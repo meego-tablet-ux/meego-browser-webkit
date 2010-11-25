@@ -46,6 +46,14 @@
 #include <wtf/Vector.h>
 #include <wtf/unicode/CharacterNames.h>
 
+#ifdef ANDROID_LAYOUT
+#include "Frame.h"
+#include "FrameTree.h"
+#include "Settings.h"
+#include "Text.h"
+#include "HTMLNames.h"
+#endif // ANDROID_LAYOUT
+
 #if ENABLE(SVG)
 #include "RenderSVGInlineText.h"
 #include "SVGRootInlineBox.h"
@@ -105,7 +113,7 @@ static void checkMidpoints(LineMidpointState& lineMidpointState, InlineIterator&
             if (endpoint.m_obj->style()->collapseWhiteSpace())
                 endpoint.m_pos--;
         }
-    }    
+    }
 }
 
 static void addMidpoint(LineMidpointState& lineMidpointState, const InlineIterator& midpoint)
@@ -136,7 +144,7 @@ void RenderBlock::appendRunsForObject(BidiRunList<BidiRun>& runs, int start, int
     if (lineMidpointState.betweenMidpoints) {
         if (!(haveNextMidpoint && nextMidpoint.m_obj == obj))
             return;
-        // This is a new start point. Stop ignoring objects and 
+        // This is a new start point. Stop ignoring objects and
         // adjust our start.
         lineMidpointState.betweenMidpoints = false;
         start = nextMidpoint.m_pos;
@@ -168,7 +176,7 @@ static inline InlineBox* createInlineBoxForRenderer(RenderObject* obj, bool isRo
 {
     if (isRootLineBox)
         return toRenderBlock(obj)->createAndAppendRootInlineBox();
-    
+
     if (obj->isText()) {
         InlineTextBox* textBox = toRenderText(obj)->createInlineTextBox();
         // We only treat a box as text for a <br> if we are on a line by ourself or in strict mode
@@ -177,10 +185,10 @@ static inline InlineBox* createInlineBoxForRenderer(RenderObject* obj, bool isRo
             textBox->setIsText(isOnlyRun || obj->document()->inNoQuirksMode());
         return textBox;
     }
-    
+
     if (obj->isBox())
         return toRenderBox(obj)->createInlineBox();
-    
+
     return toRenderInline(obj)->createAndAppendInlineFlowBox();
 }
 
@@ -450,7 +458,7 @@ void RenderBlock::computeInlineDirectionPositionsForLine(RootInlineBox* lineBox,
             if (int length = rt->textLength()) {
                 if (!r->m_start && needsWordSpacing && isSpaceOrNewline(rt->characters()[r->m_start]))
                     totalLogicalWidth += rt->style(firstLine)->font().wordSpacing();
-                needsWordSpacing = !isSpaceOrNewline(rt->characters()[r->m_stop - 1]) && r->m_stop == length;          
+                needsWordSpacing = !isSpaceOrNewline(rt->characters()[r->m_stop - 1]) && r->m_stop == length;
             }
             HashSet<const SimpleFontData*> fallbackFonts;
             GlyphOverflow glyphOverflow;
@@ -724,9 +732,9 @@ void RenderBlock::appendFloatingObjectToLastLine(FloatingObject* floatingObject)
 void RenderBlock::layoutInlineChildren(bool relayoutChildren, int& repaintLogicalTop, int& repaintLogicalBottom)
 {
     bool useRepaintBounds = false;
-    
+
     m_overflow.clear();
-        
+
     setLogicalHeight(borderBefore() + paddingBefore());
 
     // Figure out if we should clear out our line boxes.
@@ -747,6 +755,38 @@ void RenderBlock::layoutInlineChildren(bool relayoutChildren, int& repaintLogica
          deleteEllipsisLineBoxes();
 
     if (firstChild()) {
+#ifdef ANDROID_LAYOUT
+        // if we are in fitColumnToScreen mode
+        // and the current object is not float:right in LTR or not float:left in RTL,
+        // and text align is auto, or justify or left in LTR, or right in RTL, we
+        // will wrap text around screen width so that it doesn't need to scroll
+        // horizontally when reading a paragraph.
+        // In case the line height is less than the font size, we skip
+        // the text wrapping since this will cause text overlapping.
+        // If a text has background image, we ignore text wrapping,
+        // otherwise the background will be potentially messed up.
+        const Settings* settings = document()->settings();
+        bool doTextWrap = settings && settings->layoutAlgorithm() == Settings::kLayoutFitColumnToScreen;
+        if (doTextWrap) {
+            int ta = style()->textAlign();
+            int dir = style()->direction();
+            bool autowrap = style()->autoWrap();
+            // if the RenderBlock is positioned, don't wrap text around screen
+            // width as it may cause text to overlap.
+            bool positioned = isPositioned();
+            EFloat cssfloat = style()->floating();
+            const int lineHeight = style()->computedLineHeight();
+            const int fontSize = style()->fontSize();
+            doTextWrap = autowrap && !positioned &&
+                    (fontSize <= lineHeight) && !style()->hasBackgroundImage() &&
+                    (((dir == LTR && cssfloat != FRIGHT) ||
+                    (dir == RTL && cssfloat != FLEFT)) &&
+                    ((ta == TAAUTO) || (ta == JUSTIFY) ||
+                    ((ta == LEFT || ta == WEBKIT_LEFT) && (dir == LTR)) ||
+                    ((ta == RIGHT || ta == WEBKIT_RIGHT) && (dir == RTL))));
+        }
+        bool hasTextToWrap = false;
+#endif
         // layout replaced elements
         bool endOfInline = false;
         RenderObject* o = bidiFirst(this, 0, false);
@@ -768,12 +808,19 @@ void RenderBlock::layoutInlineChildren(bool relayoutChildren, int& repaintLogica
             
                 if (o->isPositioned())
                     o->containingBlock()->insertPositionedObject(box);
-                else if (o->isFloating())
-                    floats.append(FloatWithRect(box));
-                else if (fullLayout || o->needsLayout()) {
-                    // Replaced elements
-                    toRenderBox(o)->dirtyLineBoxes(fullLayout);
-                    o->layoutIfNeeded();
+                else {
+#ifdef ANDROID_LAYOUT
+                    // ignore text wrap for textField or menuList
+                    if (doTextWrap && (o->isTextField() || o->isMenuList()))
+                        doTextWrap = false;
+#endif
+                    if (o->isFloating())
+                        floats.append(FloatWithRect(box));
+                    else if (fullLayout || o->needsLayout()) {
+                        // Replaced elements
+                        toRenderBox(o)->dirtyLineBoxes(fullLayout);
+                        o->layoutIfNeeded();
+                    }
                 }
             } else if (o->isText() || (o->isRenderInline() && !endOfInline)) {
                 if (!o->isText())
@@ -781,10 +828,75 @@ void RenderBlock::layoutInlineChildren(bool relayoutChildren, int& repaintLogica
                 if (fullLayout || o->selfNeedsLayout())
                     dirtyLineBoxesForRenderer(o, fullLayout);
                 o->setNeedsLayout(false);
+#ifdef ANDROID_LAYOUT
+                if (doTextWrap && !hasTextToWrap && o->isText()) {
+                    Node* node = o->node();
+                    // as it is very common for sites to use a serial of <a> or
+                    // <li> as tabs, we don't force text to wrap if all the text
+                    // are short and within an <a> or <li> tag, and only separated
+                    // by short word like "|" or ";".
+                    if (node && node->isTextNode() &&
+                            !static_cast<Text*>(node)->containsOnlyWhitespace()) {
+                        int length = static_cast<Text*>(node)->length();
+                        // FIXME, need a magic number to decide it is too long to
+                        // be a tab. Pick 25 for now as it covers around 160px
+                        // (half of 320px) with the default font.
+                        if (length > 25 || (length > 3 &&
+                                (!node->parentNode()->hasTagName(HTMLNames::aTag) &&
+                                !node->parentNode()->hasTagName(HTMLNames::liTag))))
+                            hasTextToWrap = true;
+                    }
+                }
+#endif
             }
             o = bidiNext(this, o, 0, false, &endOfInline);
         }
 
+#ifdef ANDROID_LAYOUT
+        // try to make sure that inline text will not span wider than the
+        // screen size unless the container has a fixed height,
+        if (doTextWrap && hasTextToWrap) {
+            // check all the nested containing blocks, unless it is table or
+            // table-cell, to make sure there is no fixed height as it implies
+            // fixed layout. If we constrain the text to fit screen, we may
+            // cause text overlap with the block after.
+            bool isConstrained = false;
+            RenderObject* obj = this;
+            while (obj) {
+                if (obj->style()->height().isFixed() && (!obj->isTable() && !obj->isTableCell())) {
+                    isConstrained = true;
+                    break;
+                }
+                if (obj->isFloating() || obj->isPositioned()) {
+                    // floating and absolute or fixed positioning are done out
+                    // of normal flow. Don't need to worry about height any more.
+                    break;
+                }
+                obj = obj->container();
+            }
+            if (!isConstrained) {
+                int screenWidth = view()->frameView()->screenWidth();
+                int padding = paddingLeft() + paddingRight();
+                if (screenWidth > 0 && width() > (screenWidth + padding)) {
+                    // limit the content width (width excluding padding) to be
+                    // (screenWidth - 2 * ANDROID_FCTS_MARGIN_PADDING)
+                    int maxWidth = screenWidth - 2 * ANDROID_FCTS_MARGIN_PADDING + padding;
+                    setWidth(min(width(), maxWidth));
+                    m_minPreferredLogicalWidth = min(m_minPreferredLogicalWidth,
+                                                     maxWidth);
+                    m_maxPreferredLogicalWidth = min(m_maxPreferredLogicalWidth,
+                                                     maxWidth);
+
+                    IntRect overflow = layoutOverflowRect();
+                    if (overflow.width() > maxWidth) {
+                        overflow.setWidth(maxWidth);
+                        clearLayoutOverflow();
+                        addLayoutOverflow(overflow);
+                    }
+                }
+            }
+        }
+#endif
         // We want to skip ahead to the first dirty line
         InlineBidiResolver resolver;
         unsigned floatIndex;
@@ -961,7 +1073,7 @@ void RenderBlock::layoutInlineChildren(bool relayoutChildren, int& repaintLogica
                         repaintLogicalTop = min(repaintLogicalTop, lineBox->logicalTopVisualOverflow());
                         repaintLogicalBottom = max(repaintLogicalBottom, lineBox->logicalBottomVisualOverflow());
                     }
-                    
+
                     if (paginated) {
                         int adjustment = 0;
                         adjustLinePositionForPagination(lineBox, adjustment);
@@ -1157,7 +1269,7 @@ void RenderBlock::checkFloatsInCleanLine(RootInlineBox* line, Vector<FloatWithRe
     }
 }
 
-RootInlineBox* RenderBlock::determineStartPosition(bool& firstLine, bool& fullLayout, bool& previousLineBrokeCleanly, 
+RootInlineBox* RenderBlock::determineStartPosition(bool& firstLine, bool& fullLayout, bool& previousLineBrokeCleanly,
                                                    InlineBidiResolver& resolver, Vector<FloatWithRect>& floats, unsigned& numCleanFloats,
                                                    bool& useRepaintBounds, int& repaintLogicalTop, int& repaintLogicalBottom)
 {
@@ -1204,7 +1316,7 @@ RootInlineBox* RenderBlock::determineStartPosition(bool& firstLine, bool& fullLa
         // Nuke all our lines.
         if (firstRootBox()) {
             RenderArena* arena = renderArena();
-            curr = firstRootBox(); 
+            curr = firstRootBox();
             while (curr) {
                 RootInlineBox* next = curr->nextRootBox();
                 curr->deleteLine(arena);
@@ -1427,7 +1539,7 @@ static bool inlineFlowRequiresLineBox(RenderInline* flow)
 {
     // FIXME: Right now, we only allow line boxes for inlines that are truly empty.
     // We need to fix this, though, because at the very least, inlines containing only
-    // ignorable whitespace should should also have line boxes. 
+    // ignorable whitespace should should also have line boxes.
     return !flow->firstChild() && flow->hasInlineDirectionBordersPaddingOrMargin();
 }
 
@@ -1490,8 +1602,8 @@ void RenderBlock::skipLeadingWhitespace(InlineBidiResolver& resolver, bool isLin
     resolver.commitExplicitEmbedding();
 }
 
-// This is currently just used for list markers and inline flows that have line boxes. Neither should 
-// have an effect on whitespace at the start of the line. 
+// This is currently just used for list markers and inline flows that have line boxes. Neither should
+// have an effect on whitespace at the start of the line.
 static bool shouldSkipWhitespaceAfterStartObject(RenderBlock* block, RenderObject* o, LineMidpointState& lineMidpointState)
 {
     RenderObject* next = bidiNext(block, o);
@@ -1692,7 +1804,7 @@ InlineIterator RenderBlock::findNextLineBreak(InlineBidiResolver& resolver, bool
     // or not we are currently ignoring whitespace.
     bool ignoringSpaces = false;
     InlineIterator ignoreStart;
-    
+
     // This variable tracks whether the very last character we saw was a space.  We use
     // this to detect when we encounter a second space so we know we have to terminate
     // a run.
@@ -1718,10 +1830,10 @@ InlineIterator RenderBlock::findNextLineBreak(InlineBidiResolver& resolver, bool
 
     bool autoWrapWasEverTrueOnLine = false;
     bool floatsFitOnLine = true;
-    
+
     // Firefox and Opera will allow a table cell to grow to fit an image inside it under
-    // very specific circumstances (in order to match common WinIE renderings). 
-    // Not supporting the quirk has caused us to mis-render some real sites. (See Bugzilla 10517.) 
+    // very specific circumstances (in order to match common WinIE renderings).
+    // Not supporting the quirk has caused us to mis-render some real sites. (See Bugzilla 10517.)
     bool allowImagesToBreak = !document()->inQuirksMode() || !isTableCell() || !style()->logicalWidth().isIntrinsicOrAuto();
 
     EWhiteSpace currWS = style()->whiteSpace();
@@ -1731,7 +1843,7 @@ InlineIterator RenderBlock::findNextLineBreak(InlineBidiResolver& resolver, bool
 
         currWS = o->isReplaced() ? o->parent()->style()->whiteSpace() : o->style()->whiteSpace();
         lastWS = last->isReplaced() ? last->parent()->style()->whiteSpace() : last->style()->whiteSpace();
-        
+
         bool autoWrap = RenderStyle::autoWrap(currWS);
         autoWrapWasEverTrueOnLine = autoWrapWasEverTrueOnLine || autoWrap;
 
@@ -1742,7 +1854,7 @@ InlineIterator RenderBlock::findNextLineBreak(InlineBidiResolver& resolver, bool
 #endif
 
         bool collapseWhiteSpace = RenderStyle::collapseWhiteSpace(currWS);
-            
+
         if (o->isBR()) {
             if (width.fitsOnLine()) {
                 lBreak.moveToStartOf(o);
@@ -1826,7 +1938,7 @@ InlineIterator RenderBlock::findNextLineBreak(InlineBidiResolver& resolver, bool
                     addMidpoint(lineMidpointState, InlineIterator(0, o, 0)); // Start ignoring again.
                 } else if (style()->collapseWhiteSpace() && resolver.position().m_obj == o
                     && shouldSkipWhitespaceAfterStartObject(this, o, lineMidpointState)) {
-                    // Like with list markers, we start ignoring spaces to make sure that any 
+                    // Like with list markers, we start ignoring spaces to make sure that any
                     // additional spaces we see will be discarded.
                     currentCharacterIsSpace = true;
                     currentCharacterIsWS = true;
@@ -1859,7 +1971,7 @@ InlineIterator RenderBlock::findNextLineBreak(InlineBidiResolver& resolver, bool
             int replacedLogicalWidth = logicalWidthForChild(replacedBox) + marginStartForChild(replacedBox) + marginEndForChild(replacedBox) + inlineLogicalWidth(o);
             if (o->isListMarker()) {
                 if (style()->collapseWhiteSpace() && shouldSkipWhitespaceAfterStartObject(this, o, lineMidpointState)) {
-                    // Like with inline flows, we start ignoring spaces to make sure that any 
+                    // Like with inline flows, we start ignoring spaces to make sure that any
                     // additional spaces we see will be discarded.
                     currentCharacterIsSpace = true;
                     currentCharacterIsWS = true;
@@ -1933,7 +2045,7 @@ InlineIterator RenderBlock::findNextLineBreak(InlineBidiResolver& resolver, bool
                 }
 
                 bool applyWordSpacing = false;
-                
+
                 currentCharacterIsWS = currentCharacterIsSpace || (breakNBSP && c == noBreakSpace);
 
                 if ((breakAll || breakWords) && !midWordBreak) {
@@ -1978,7 +2090,7 @@ InlineIterator RenderBlock::findNextLineBreak(InlineBidiResolver& resolver, bool
                         width.addUncommittedWidth(inlineLogicalWidth(o, true, false));
                         appliedStartWidth = true;
                     }
-                    
+
                     applyWordSpacing =  wordSpacing && currentCharacterIsSpace && !previousCharacterIsSpace;
 
                     if (!width.committedWidth() && autoWrap && !width.fitsOnLine())
@@ -1991,9 +2103,9 @@ InlineIterator RenderBlock::findNextLineBreak(InlineBidiResolver& resolver, bool
                         if (width.fitsOnLine() && currentCharacterIsWS && o->style()->breakOnlyAfterWhiteSpace() && !midWordBreak) {
                             int charWidth = textWidth(t, pos, 1, f, width.currentWidth(), isFixedPitch, collapseWhiteSpace) + (applyWordSpacing ? wordSpacing : 0);
                             // Check if line is too big even without the extra space
-                            // at the end of the line. If it is not, do nothing. 
-                            // If the line needs the extra whitespace to be too long, 
-                            // then move the line break to the space and skip all 
+                            // at the end of the line. If it is not, do nothing.
+                            // If the line needs the extra whitespace to be too long,
+                            // then move the line break to the space and skip all
                             // additional whitespace.
                             if (!width.fitsOnLine(charWidth)) {
                                 lineWasTooWide = true;
@@ -2050,7 +2162,7 @@ InlineIterator RenderBlock::findNextLineBreak(InlineBidiResolver& resolver, bool
                         // opportunity to break after a word.
                         breakWords = false;
                     }
-                    
+
                     if (midWordBreak) {
                         // Remember this as a breakable position in case
                         // adding the end width forces a break.
@@ -2062,17 +2174,17 @@ InlineIterator RenderBlock::findNextLineBreak(InlineBidiResolver& resolver, bool
                         lastSpaceWordSpacing = applyWordSpacing ? wordSpacing : 0;
                         lastSpace = pos;
                     }
-                    
+
                     if (!ignoringSpaces && o->style()->collapseWhiteSpace()) {
                         // If we encounter a newline, or if we encounter a
                         // second space, we need to go ahead and break up this
                         // run and enter a mode where we start collapsing spaces.
                         if (currentCharacterIsSpace && previousCharacterIsSpace) {
                             ignoringSpaces = true;
-                            
+
                             // We just entered a mode where we are ignoring
                             // spaces. Create a midpoint to terminate the run
-                            // before the second space. 
+                            // before the second space.
                             addMidpoint(lineMidpointState, ignoreStart);
                         }
                     }
@@ -2234,7 +2346,7 @@ InlineIterator RenderBlock::findNextLineBreak(InlineBidiResolver& resolver, bool
 
     // Sanity check our midpoints.
     checkMidpoints(lineMidpointState, lBreak);
-        
+
     if (trailingSpaceObject) {
         // This object is either going to be part of the last midpoint, or it is going
         // to be the actual endpoint.  In both cases we just decrease our pos by 1 level to

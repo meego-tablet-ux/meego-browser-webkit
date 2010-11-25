@@ -174,4 +174,20 @@ void Widget::frameRectsChanged()
 }
 #endif
 
+int Widget::screenWidth() const
+{
+    const Widget* widget = this;
+    while (!widget->isFrameView()) {
+        widget = widget->parent();
+        if (!widget)
+            break;
+    }
+    if (!widget)
+        return 0;
+    const ScrollView* sv = static_cast<const ScrollView*>(widget);
+    if (!sv)
+        return 0;
+    return sv->visibleWidth();
+}
+
 } // namespace WebCore

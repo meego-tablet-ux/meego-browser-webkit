@@ -265,6 +265,9 @@ private:
     static IntPoint convertFromRootToContainingWindow(const Widget* rootWidget, const IntPoint&);
     static IntPoint convertFromContainingWindowToRoot(const Widget* rootWidget, const IntPoint&);
 
+public:
+    int screenWidth() const;
+
 private:
     ScrollView* m_parent;
 #if !PLATFORM(MAC)

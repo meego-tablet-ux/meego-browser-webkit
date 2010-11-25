@@ -54,6 +54,10 @@
 #include "TransformState.h"
 #include <wtf/StdLibExtras.h>
 
+#ifdef ANDROID_LAYOUT
+#include "Settings.h"
+#endif
+
 using namespace std;
 using namespace WTF;
 using namespace Unicode;
@@ -1155,6 +1159,9 @@ void RenderBlock::layoutBlock(bool relayoutChildren, int pageLogicalHeight)
     int oldWidth = logicalWidth();
     int oldColumnWidth = desiredColumnWidth();
 
+#ifdef ANDROID_LAYOUT
+    int oldVisibleWidth = m_visibleWidth;
+#endif
     computeLogicalWidth();
     calcColumnWidth();
 
@@ -1162,6 +1169,14 @@ void RenderBlock::layoutBlock(bool relayoutChildren, int pageLogicalHeight)
 
     if (oldWidth != logicalWidth() || oldColumnWidth != desiredColumnWidth())
         relayoutChildren = true;
+
+#ifdef ANDROID_LAYOUT
+    const Settings* settings = document()->settings();
+    ASSERT(settings);
+    if (oldVisibleWidth != m_visibleWidth
+            && settings->layoutAlgorithm() == Settings::kLayoutFitColumnToScreen)
+        relayoutChildren = true;
+#endif
 
     clearFloats();
 
