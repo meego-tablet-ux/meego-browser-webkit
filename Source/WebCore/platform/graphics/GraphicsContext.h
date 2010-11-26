@@ -385,6 +385,7 @@ namespace WebCore {
         void drawFocusRing(const Path&, int width, int offset, const Color&);
 #if defined(TOOLKIT_MEEGOTOUCH)
         void drawCursorRing(const Vector<IntRect>&);
+	void drawFilledCircleAtPoint(const IntPoint pos, int radius, Color& color);
 #endif
 
         void setLineCap(LineCap);

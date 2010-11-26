@@ -126,6 +126,8 @@
 #include <wtf/CurrentTime.h>
 #include <wtf/RefPtr.h>
 
+#include "visible_units.h"
+
 #if USE(CG)
 #include <CoreGraphics/CGBitmapContext.h>
 #include <CoreGraphics/CGContext.h>
@@ -146,6 +148,7 @@
 
 #if defined(TOOLKIT_MEEGOTOUCH)
 #define CURSOR_RING_OUTER_DIAMETER 4 // SkFixedToScalar(SkIntToFixed(13)>>2) // 13/4 == 3.25
+#define CARET_RADIUS SkIntToScalar(20)
 #endif
 
 using namespace WebCore;
@@ -686,7 +689,6 @@ void WebViewImpl::mouseUp(const WebMouseEvent& event)
           m_client->didInvalidateRect(dr);
       }
     }
-    
 #endif
 
 }
@@ -1231,10 +1233,242 @@ void WebViewImpl::paint(WebCanvas* canvas, const WebRect& rect)
     }
 #if defined(TOOLKIT_MEEGOTOUCH)
     drawLinkTapHighlight(canvas, rect);
+    drawSelectionHandle(canvas, rect);
 #endif
 }
 
 #if defined(TOOLKIT_MEEGOTOUCH)
+
+void WebViewImpl::selectItem(const WebPoint pos)
+{
+  IntPoint point(pos.x, pos.y);
+  HitTestResult result = hitTestResultForWindowPos(point);
+  
+  Node* innerNode = result.innerNode();
+  if ( !(innerNode && innerNode->renderer()))
+    return;
+
+  RenderObject* renderer = innerNode->renderer();
+  VisibleSelection newSelection;
+  VisiblePosition vpos(renderer->positionForPoint(result.localPoint()));
+  if (vpos.isNotNull()) {
+    newSelection = VisibleSelection(vpos);
+    newSelection.expandUsingGranularity(ParagraphBoundary);
+  }
+  
+  TextGranularity granularity = CharacterGranularity;
+  if (newSelection.isRange()) {
+    granularity = ParagraphGranularity;
+  }
+  
+  m_page->mainFrame()->selection()->setSelection(newSelection);
+
+  // new Selection, need to retrieve the start/end Rect for it
+  IntPoint startPoint;
+  IntPoint endPoint;
+  getSelectionStartEndPoint(startPoint, endPoint);
+  m_startPoint = startPoint;
+  m_endPoint = endPoint;
+    
+  // draw the new start/end handlers
+  invalidateSelectionHandler(m_page->mainFrame()->view()->contentsToWindow(startPoint));
+  invalidateSelectionHandler(m_page->mainFrame()->view()->contentsToWindow(endPoint));
+
+  // clear the old start/end handlers
+  invalidateSelectionHandler(m_cachedSelectionStartPoint);
+  invalidateSelectionHandler(m_cachedSelectionEndPoint);
+}
+
+void WebViewImpl::setSelectionRange(const WebPoint start, const WebPoint end, bool set)
+{
+  if (!set)
+  {
+    m_page->mainFrame()->selection()->clear();
+    m_startPoint = IntPoint();
+    m_endPoint = IntPoint();
+  }
+  else
+  {
+    IntPoint start_point(start.x, start.y);
+    start_point = m_page->mainFrame()->view()->windowToContents(start_point);
+    HitTestResult start_result(m_page->mainFrame()->eventHandler()->hitTestResultAtPoint(start_point, false));
+    if ( !(start_result.innerNode() && start_result.innerNode()->renderer() )) return;
+
+    RenderObject* start_renderer = start_result.innerNode()->renderer();
+    VisiblePosition start(start_renderer->positionForPoint(start_result.localPoint()));
+    VisiblePosition startWord  = startOfWord(start);
+    VisiblePosition endWord = endOfWord(start);
+    if (start != startWord && start != endWord ) start = startWord;
+
+    IntPoint end_point(end.x, end.y);
+    end_point = m_page->mainFrame()->view()->windowToContents(end_point);
+    HitTestResult end_result(m_page->mainFrame()->eventHandler()->hitTestResultAtPoint(end_point, false));
+    if ( !(end_result.innerNode() && end_result.innerNode()->renderer())) return;
+
+    RenderObject* end_renderer = end_result.innerNode()->renderer();
+    VisiblePosition end(end_renderer->positionForPoint(end_result.localPoint()));
+    startWord = startOfWord(end);
+    endWord = endOfWord(end);
+    if (end != startWord && end!= endWord ) end = endOfWord(end);
+      
+    m_page->mainFrame()->selection()->setSelection(VisibleSelection(start, end));
+
+    // new Selection, need to retrieve the start/end Rect for it
+    IntPoint startPoint;
+    IntPoint endPoint;
+    getSelectionStartEndPoint(startPoint, endPoint);
+
+    IntRect contentRect = mainFrameImpl()->frameView()->visibleContentRect(false);
+    if (contentRect.contains(startPoint)) m_startPoint = startPoint;
+    if (contentRect.contains(endPoint)) m_endPoint = endPoint;
+
+    // draw the new start/end handlers
+    invalidateSelectionHandler(m_page->mainFrame()->view()->contentsToWindow(m_startPoint));
+    invalidateSelectionHandler(m_page->mainFrame()->view()->contentsToWindow(m_endPoint));
+  }
+
+  // clear the old start/end handlers
+  invalidateSelectionHandler(m_cachedSelectionStartPoint);
+  invalidateSelectionHandler(m_cachedSelectionEndPoint);
+}
+
+void WebViewImpl::invalidateSelectionHandler(IntPoint pos)
+{
+  IntRect damageRect(pos.x() - CARET_RADIUS, pos.y() - CARET_RADIUS, 
+		     2* CARET_RADIUS, 2 * CARET_RADIUS);
+  m_client->didInvalidateRect(damageRect);
+}
+
+void WebViewImpl::getSelectionStartEndPoint(IntPoint& startPoint, IntPoint& endPoint)
+{
+  SelectionController* sc = m_page->mainFrame()->selection();
+  if (sc->selection().isNone()) return;
+
+  VisibleSelection selection = sc->selection();
+
+  int extraWidthToEndOfLine = 0;
+
+  Position startPosition;
+  Position endPosition; 
+  if (selection.isBaseFirst())
+  {
+    startPosition = sc->start();
+    endPosition = sc->end();
+  }  else
+  {
+    startPosition = sc->end();
+    endPosition = sc->start();
+  }
+
+  if (startPosition.isNull() || endPosition.isNull() || startPosition == endPosition)
+    return;
+
+  InlineBox* startInlineBox;
+  InlineBox* endInlineBox;
+  int startCaretOffset, endCaretOffset;
+
+  startPosition.getInlineBoxAndOffset(DOWNSTREAM, startInlineBox, startCaretOffset);
+  endPosition.getInlineBoxAndOffset(UPSTREAM, endInlineBox, endCaretOffset);
+
+  RenderObject* startRenderer = startPosition.anchorNode()->renderer();
+  RenderObject* endRenderer = endPosition.anchorNode()->renderer();
+  ASSERT(startRenderer);
+  ASSERT(endRenderer);
+
+  IntRect startRect = startRenderer->localCaretRect(startInlineBox, startCaretOffset, &extraWidthToEndOfLine);
+  if (startRect != IntRect())
+    startRect = startRenderer->localToAbsoluteQuad(FloatRect(startRect)).enclosingBoundingBox();
+
+  IntRect endRect = endRenderer->localCaretRect(endInlineBox, endCaretOffset);
+  if (endRect != IntRect())
+    endRect = endRenderer->localToAbsoluteQuad(FloatRect(endRect)).enclosingBoundingBox();
+
+  if (startRect != endRect)
+  {
+    startPoint = IntPoint(startRect.x(), startRect.y()+startRect.height()/2);
+    endPoint = IntPoint(endRect.x(), endRect.y()+endRect.height()/2 );
+  }
+
+}
+
+void WebViewImpl::drawFilledCircleAtPoint(WebCanvas* canvas, const WebCore::IntPoint pos, int radius, Color& color)
+{
+  PlatformContextSkia context(canvas);
+  GraphicsContext gc(reinterpret_cast<PlatformGraphicsContext*>(&context));
+
+  gc.save();
+  gc.drawFilledCircleAtPoint(pos, radius, color);
+  gc.restore();
+
+}
+
+void WebViewImpl::drawSelectionHandle(WebCanvas* canvas, const WebRect& rect)
+{
+  IntPoint start_window;
+  IntPoint end_window;
+
+  IntPoint startPoint;
+  IntPoint endPoint;
+
+  getSelectionStartEndPoint(startPoint, endPoint);
+
+  if (startPoint == IntPoint() && endPoint == IntPoint() )  // no selection currently
+  {
+    m_startPoint = IntPoint();
+    m_endPoint = IntPoint();
+    if ((m_cachedSelectionStartPoint != IntPoint()) && (m_cachedSelectionEndPoint != IntPoint()))  // has draw handle before
+    {
+      invalidateSelectionHandler(m_cachedSelectionStartPoint);
+      invalidateSelectionHandler(m_cachedSelectionEndPoint);
+      m_cachedSelectionStartPoint = IntPoint();
+      m_cachedSelectionEndPoint = IntPoint();
+    }
+    WebPoint start(0,0);
+    WebPoint end(0,0);
+    m_client->UpdateSelectionRange(start, end, false);
+    return;
+  }
+
+  if (m_startPoint != IntPoint() || m_endPoint != IntPoint() )  // has selection other than editable content
+  {
+    // There is selection here and the selection not changed
+    // but the page may be scaled, so need to re-caculate it
+    WebSize size = mainFrameImpl()->contentsSize();
+    IntRect contentRect(0,0,size.width, size.height);
+    if (contentRect.contains(startPoint)) m_startPoint = startPoint;
+    if (contentRect.contains(endPoint)) m_endPoint = endPoint;
+
+    start_window = m_page->mainFrame()->view()->contentsToWindow(m_startPoint);
+    end_window = m_page->mainFrame()->view()->contentsToWindow(m_endPoint);
+    Color color(0x3f, 0xb3, 0x08, 0x80);
+    if (start_window != IntPoint() && end_window != IntPoint())
+    {
+      drawFilledCircleAtPoint(canvas, start_window, CARET_RADIUS, color);
+      drawFilledCircleAtPoint(canvas, end_window, CARET_RADIUS, color);
+    }
+
+    // check whether cached selection start/end rect changed, if so, tell ViewHost this
+    if ( (start_window != m_cachedSelectionStartPoint) || (end_window != m_cachedSelectionEndPoint) )
+    {
+      // clear the old start/end handlers
+      if ((m_cachedSelectionStartPoint != IntPoint()) && (m_cachedSelectionEndPoint != IntPoint()))
+      {
+	invalidateSelectionHandler(m_cachedSelectionStartPoint);
+	invalidateSelectionHandler(m_cachedSelectionEndPoint);
+      }
+     
+      m_cachedSelectionStartPoint = start_window;
+      m_cachedSelectionEndPoint = end_window;
+    
+      // update start/end position in host
+      WebPoint wp_start(start_window);
+      WebPoint wp_end(end_window);
+      m_client->UpdateSelectionRange(wp_start, wp_end, true);
+
+    }
+  }
+}
+
 void WebViewImpl::drawLinkTapHighlight(WebCanvas* canvas, const WebRect& rect)
 {
   if (!m_cursorRings.size())

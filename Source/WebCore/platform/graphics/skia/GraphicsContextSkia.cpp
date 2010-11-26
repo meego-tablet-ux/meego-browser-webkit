@@ -586,6 +586,26 @@ void GraphicsContext::drawFocusRing(const Vector<IntRect>& rects, int /* width *
     platformContext()->canvas()->drawPath(path, paint);
 }
 
+void GraphicsContext::drawFilledCircleAtPoint(const IntPoint pos, int radius, Color& color)
+{
+    if (paintingDisabled())
+        return;
+
+    platformContext()->prepareForSoftwareDraw();
+
+    SkPaint paint;
+    paint.setStyle(SkPaint::kFill_Style);
+    //    paint.setStrokeWidth(CARET_WIDTH);
+    paint.setColor(color.rgb());
+    paint.setAlpha(color.alpha());
+
+    SkCanvas* canvas = platformContext()->canvas();
+    SkScalar x = SkIntToScalar(pos.x());
+    SkScalar y = SkIntToScalar(pos.y());
+
+    canvas->drawCircle(pos.x(), pos.y(), radius, paint);
+}
+
 void GraphicsContext::drawCursorRing(const Vector<IntRect>& rects)
 {
     if (paintingDisabled())

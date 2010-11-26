@@ -355,6 +355,12 @@ public:
     // APIs.
     virtual WebGraphicsContext3D* graphicsContext3D() = 0;
 
+#if defined(TOOLKIT_MEEGOTOUCH)
+    // Selection support
+    virtual void setSelectionRange(const WebPoint start, const WebPoint end, bool set) = 0;
+    virtual void selectItem(const WebPoint pos) = 0;
+#endif
+
 protected:
     ~WebView() {}
 };

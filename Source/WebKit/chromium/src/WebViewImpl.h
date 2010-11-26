@@ -259,6 +259,14 @@ public:
 #if defined(TOOLKIT_MEEGOTOUCH)
 	virtual void queryNodeTypeAtPoint(int x, int y, bool &is_embedded_object, bool &is_editable_text);
 	virtual void drawLinkTapHighlight(WebCanvas* canvas, const WebRect& rect); 
+
+	virtual void drawSelectionHandle(WebCanvas* canvas, const WebRect& rect);
+	virtual void getSelectionStartEndPoint(WebCore::IntPoint& startPoint, WebCore::IntPoint& endPoint);
+	virtual void invalidateSelectionHandler(WebCore::IntPoint pos);
+	virtual void setSelectionRange(const WebPoint start, const WebPoint end, bool set);
+	virtual void selectItem(const WebPoint pos);
+	virtual void drawFilledCircleAtPoint(WebCanvas* canvas, const WebCore::IntPoint pos, int radius, WebCore::Color& color);
+
 #endif
 
     // Handles context menu events orignated via the the keyboard. These
@@ -545,6 +553,16 @@ private:
     void touchStart(const WebTouchEvent& event);
     void touchMove(const WebTouchEvent& event);
     void touchEnd(const WebTouchEvent& event);
+
+    WebCore::IntPoint m_cachedSelectionStartPoint;  // in window coordinate
+    WebCore::IntPoint m_cachedSelectionEndPoint;    // in window coordinate
+
+    bool m_startSelect;
+    WebCore::IntPoint m_start;
+    WebCore::IntPoint m_end;
+    WebCore::IntPoint m_startPoint; // in content coordinate
+    WebCore::IntPoint m_endPoint;   // in content coordinate
+
 #endif
 
     // If we attempt to fetch the on-screen GraphicsContext3D before
