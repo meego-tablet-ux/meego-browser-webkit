@@ -1998,17 +1998,23 @@ void WebFrameImpl::layout()
         view->updateLayoutAndStyleIfNeededRecursive();
 }
 
-void WebFrameImpl::paintContent(WebCanvas* canvas, const WebRect& rect)
+int WebFrameImpl::paintContent(WebCanvas* canvas, const WebRect& rect)
 {
     PlatformContextSkia context(canvas);
     GraphicsContext gc(&context);
+    int retval = 0;
 
     gc.save();
     if (m_frame->document() && frameView()) {
-        m_frame->view()->paintContents(&gc, rect);
+        if (!m_frame->view()->needsLayout() && !m_frame->view()->isPainting())
+            m_frame->view()->paintContents(&gc, rect);
+        else
+            retval = 1;
     }
 
     gc.restore();
+
+    return retval;
 }
 
 void WebFrameImpl::paintWithContext(GraphicsContext& gc, const WebRect& rect)

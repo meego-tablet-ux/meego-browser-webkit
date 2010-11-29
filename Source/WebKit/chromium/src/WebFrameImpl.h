@@ -75,7 +75,7 @@ public:
     virtual WebSize scrollOffset() const;
     virtual void setScrollOffset(const WebSize&);
     virtual void setScrollPosition(WebPoint point);
-    virtual void paintContent(WebCanvas* canvas, const WebRect& rect);
+    virtual int paintContent(WebCanvas* canvas, const WebRect& rect);
     virtual WebSize contentsSize() const;
     virtual int contentsPreferredWidth() const;
     virtual int documentElementScrollHeight() const;
