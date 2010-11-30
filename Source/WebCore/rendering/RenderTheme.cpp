@@ -523,34 +523,30 @@ IntPoint RenderTheme::volumeSliderOffsetFromMuteButton(RenderBox* muteButtonBox,
 
 Color RenderTheme::activeSelectionBackgroundColor() const
 {
-  return Color(0x1e, 0x90, 0xff, 0x7f);
-    // if (!m_activeSelectionBackgroundColor.isValid())
-    //     m_activeSelectionBackgroundColor = platformActiveSelectionBackgroundColor().blendWithWhite();
-    // return m_activeSelectionBackgroundColor;
+    if (!m_activeSelectionBackgroundColor.isValid())
+        m_activeSelectionBackgroundColor = platformActiveSelectionBackgroundColor().blendWithWhite();
+    return m_activeSelectionBackgroundColor;
 }
 
 Color RenderTheme::inactiveSelectionBackgroundColor() const
 {
-  return Color(0xc8, 0xc8, 0xc8, 0x7f);
-    // if (!m_inactiveSelectionBackgroundColor.isValid())
-    //     m_inactiveSelectionBackgroundColor = platformInactiveSelectionBackgroundColor().blendWithWhite();
-    // return m_inactiveSelectionBackgroundColor;
+    if (!m_inactiveSelectionBackgroundColor.isValid())
+        m_inactiveSelectionBackgroundColor = platformInactiveSelectionBackgroundColor().blendWithWhite();
+    return m_inactiveSelectionBackgroundColor;
 }
 
 Color RenderTheme::activeSelectionForegroundColor() const
 {
-  return Color(0, 0, 0, 0x7f);  
-    // if (!m_activeSelectionForegroundColor.isValid() && supportsSelectionForegroundColors())
-    //     m_activeSelectionForegroundColor = platformActiveSelectionForegroundColor();
-    // return m_activeSelectionForegroundColor;
+    if (!m_activeSelectionForegroundColor.isValid() && supportsSelectionForegroundColors())
+        m_activeSelectionForegroundColor = platformActiveSelectionForegroundColor();
+    return m_activeSelectionForegroundColor;
 }
 
 Color RenderTheme::inactiveSelectionForegroundColor() const
 {
-  return Color(0x32, 0x32, 0x32, 0x7f);  
-    // if (!m_inactiveSelectionForegroundColor.isValid() && supportsSelectionForegroundColors())
-    //     m_inactiveSelectionForegroundColor = platformInactiveSelectionForegroundColor();
-    // return m_inactiveSelectionForegroundColor;
+    if (!m_inactiveSelectionForegroundColor.isValid() && supportsSelectionForegroundColors())
+        m_inactiveSelectionForegroundColor = platformInactiveSelectionForegroundColor();
+    return m_inactiveSelectionForegroundColor;
 }
 
 Color RenderTheme::activeListBoxSelectionBackgroundColor() const
