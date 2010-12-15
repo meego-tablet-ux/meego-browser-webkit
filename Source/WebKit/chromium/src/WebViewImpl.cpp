@@ -181,7 +181,7 @@ namespace WebKit {
 // text zoom to half and 3x the original text size.  These three values match
 // those in Apple's port in WebKit/WebKit/WebView/WebView.mm
 const double WebView::textSizeMultiplierRatio = 1.2;
-const double WebView::minTextSizeMultiplier = 0.5;
+const double WebView::minTextSizeMultiplier = 0.1;
 const double WebView::maxTextSizeMultiplier = 3.0;
 
 
