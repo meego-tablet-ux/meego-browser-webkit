@@ -113,7 +113,10 @@ public:
     virtual void setMinimumTimerInterval(double);
     virtual void setFullScreenEnabled(bool);
 
-private:
+    virtual LayoutAlgorithm getLayoutAlgorithm();
+    virtual void setLayoutAlgorithm(LayoutAlgorithm algo);
+
+  private:
     WebCore::Settings* m_settings;
     bool m_compositeToTextureEnabled;
     bool m_showFPSCounter;

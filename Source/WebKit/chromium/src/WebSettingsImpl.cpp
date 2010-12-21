@@ -397,4 +397,14 @@ void WebSettingsImpl::setFullScreenEnabled(bool enabled)
 #endif
 }
 
+void WebSettingsImpl::setLayoutAlgorithm(LayoutAlgorithm algo)
+{
+  m_settings->setLayoutAlgorithm((WebCore::Settings::LayoutAlgorithm)algo);
+}
+
+WebKit::WebSettings::LayoutAlgorithm WebSettingsImpl::getLayoutAlgorithm()
+{
+  return (WebKit::WebSettings::LayoutAlgorithm)m_settings->layoutAlgorithm();
+}
+
 } // namespace WebKit

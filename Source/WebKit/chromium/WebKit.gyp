@@ -85,6 +85,7 @@
             ],
             'defines': [
                 'WEBKIT_IMPLEMENTATION=1',
+                'ANDROID_LAYOUT=1',
             ],
             'sources': [
                 'public/gtk/WebInputEventFactory.h',

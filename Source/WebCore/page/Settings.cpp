@@ -83,7 +83,7 @@ static EditingBehaviorType editingBehaviorTypeForPlatform()
 Settings::Settings(Page* page)
     : m_page(page)
 #ifdef ANDROID_LAYOUT
-    , m_layoutAlgorithm(kLayoutFitColumnToScreen)
+    , m_layoutAlgorithm(kLayoutNormal)
 #endif
     , m_editableLinkBehavior(EditableLinkDefaultBehavior)
     , m_textDirectionSubmenuInclusionBehavior(TextDirectionSubmenuAutomaticallyIncluded)

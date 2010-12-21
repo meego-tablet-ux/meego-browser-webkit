@@ -50,6 +50,11 @@ public:
         EditingBehaviorWin,
         EditingBehaviorUnix
     };
+    enum LayoutAlgorithm {
+      kLayoutNormal,
+      kLayoutSSR,
+      kLayoutFitColumnToScreen
+    };
 
     virtual void setStandardFontFamily(const WebString&) = 0;
     virtual void setFixedFontFamily(const WebString&) = 0;
@@ -120,6 +125,8 @@ public:
     virtual void setMinimumTimerInterval(double) = 0;
     virtual void setFullScreenEnabled(bool) = 0;
 
+    virtual LayoutAlgorithm getLayoutAlgorithm() = 0;
+    virtual void setLayoutAlgorithm(LayoutAlgorithm algo) = 0;
 protected:
     ~WebSettings() { }
 };

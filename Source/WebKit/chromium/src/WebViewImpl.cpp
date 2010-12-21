@@ -85,6 +85,7 @@
 #include "PopupMenuChromium.h"
 #include "PopupMenuClient.h"
 #include "ProgressTracker.h"
+#include "RenderLayer.h"
 #include "RenderView.h"
 #include "ResourceHandle.h"
 #include "SecurityOrigin.h"
@@ -2926,6 +2927,44 @@ WebGraphicsContext3D* WebViewImpl::graphicsContext3D()
     }
 #endif
     return 0;
+}
+
+void WebViewImpl::zoom2TextAction(int x, int y)
+{
+    if (!mainFrameImpl() || !mainFrameImpl()->frameView())
+        return;
+
+    FrameView* frame_view = mainFrameImpl()->frameView();
+    if (frame_view->isInLayout() || frame_view->isPainting())
+        return;
+
+    IntPoint point(x, y);
+    point = m_page->mainFrame()->view()->windowToContents(point);
+    HitTestResult result(m_page->mainFrame()->eventHandler()->hitTestResultAtPoint(point, false));
+    Node* hitNode = result.innerNonSharedNode();
+
+    if (!hitNode || !hitNode->renderer())
+        return;
+
+    // if (!hitNode->isTextNode())
+    //     return;
+    IntRect bounds = hitNode->getRect();
+    IntPoint dest(bounds.x(), mainFrame()->scrollOffset().height);
+    mainFrame()->setScrollPosition(dest);
+
+    if (hitNode->isElementNode()) {
+        Element* e = static_cast<Element*>(hitNode);
+        e->scrollIntoViewIfNeeded();
+    }else{
+        Element* enclosing = hitNode->enclosingInlineElement();
+        if (enclosing)
+            enclosing->scrollIntoViewIfNeeded();
+    }
+    // hitNode->renderer()->enclosingLayer()->
+    //     scrollRectToVisible(bounds, false,
+    //                         ScrollAlignment::alignCenterIfNeeded,
+    //                         ScrollAlignment::alignCenterIfNeeded);
+
 }
 
 } // namespace WebKit
