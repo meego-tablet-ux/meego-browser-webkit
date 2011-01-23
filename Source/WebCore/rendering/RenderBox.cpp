@@ -1621,6 +1621,19 @@ void RenderBox::computeLogicalWidth()
         setMarginEnd(style()->marginEnd().calcMinValue(containerLogicalWidth));
     } else
         computeInlineDirectionMargins(cb, containerLogicalWidth, logicalWidth());
+#ifdef ANDROID_LAYOUT
+    if (containerLogicalWidth && !treatAsReplaced &&
+            document()->settings()->layoutAlgorithm() == Settings::kLayoutSSR) {
+        setWidth(width() + m_marginLeft + m_marginRight);
+        m_marginLeft = m_marginLeft > ANDROID_SSR_MARGIN_PADDING ? ANDROID_SSR_MARGIN_PADDING : m_marginLeft;
+        m_marginRight = m_marginRight > ANDROID_SSR_MARGIN_PADDING ? ANDROID_SSR_MARGIN_PADDING : m_marginRight;
+        if (width() > containerLogicalWidth) {
+            m_minPreferredLogicalWidth = m_maxPreferredLogicalWidth = containerLogicalWidth-(m_marginLeft + m_marginRight);
+            setWidth(m_minPreferredLogicalWidth);
+        } else
+            setWidth(width() -(m_marginLeft + m_marginRight));
+    }
+#endif
 
     if (!hasPerpendicularContainingBlock && containerLogicalWidth && containerLogicalWidth != (logicalWidth() + marginStart() + marginEnd())
             && !isFloating() && !isInline() && !cb->isFlexibleBox())

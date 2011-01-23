@@ -63,6 +63,9 @@ RenderTable::RenderTable(Node* node)
     , m_borderStart(0)
     , m_borderEnd(0)
 {
+#ifdef ANDROID_LAYOUT
+    m_singleColumn = false;
+#endif
     setChildrenInline(false);
     m_columnPos.fill(0, 2);
     m_columns.fill(ColumnStruct(), 1);
@@ -256,6 +259,11 @@ void RenderTable::computeLogicalWidth()
     // Finally, with our true width determined, compute our margins for real.
     setMarginStart(0);
     setMarginEnd(0);
+#ifdef ANDROID_LAYOUT
+    // in SSR mode, we ignore left/right margin for table
+    if (document()->settings()->layoutAlgorithm() == Settings::kLayoutSSR)
+        return;
+#endif
     if (!hasPerpendicularContainingBlock)
         computeInlineDirectionMargins(cb, availableLogicalWidth, logicalWidth());
     else {
@@ -305,6 +313,33 @@ void RenderTable::layout()
     if (oldVisibleWidth != m_visibleWidth
         && document()->settings()->layoutAlgorithm() == Settings::kLayoutFitColumnToScreen)
         relayoutChildren = true;
+    else if (document()->settings()->layoutAlgorithm() == Settings::kLayoutSSR) {
+        // if the width of a table is wider than its container width, or it has a nested table,
+        // we will render it with single column.
+        int cw = containingBlockLogicalWidthForContent();
+        bool shouldRenderAsSingleColumn = (width() > cw);
+        if (!shouldRenderAsSingleColumn) {
+            RenderObject* child = firstChild();
+            while (child) {
+                if (child->isTable()) {
+                    shouldRenderAsSingleColumn = true;
+                    break;
+                }
+                child = child->nextInPreOrder();
+            }
+        }
+
+        if (shouldRenderAsSingleColumn) {
+            m_singleColumn = true;
+            if (width() > cw)
+                setWidth(cw);
+            if (m_minPreferredLogicalWidth > cw)
+                m_minPreferredLogicalWidth = cw;
+            if (m_maxPreferredLogicalWidth > cw)
+                m_maxPreferredLogicalWidth = cw;
+        }
+    }
+
 #endif
 
     if (m_caption && logicalWidth() != oldLogicalWidth)
