@@ -65,6 +65,7 @@ class PopupMenuClient;
 class Range;
 class RenderTheme;
 class Widget;
+class Node;
 }
 
 namespace WebKit {
@@ -266,7 +267,10 @@ public:
 	virtual void setSelectionRange(const WebPoint start, const WebPoint end, bool set);
 	virtual void selectItem(const WebPoint pos);
 	virtual void drawFilledCircleAtPoint(WebCanvas* canvas, const WebCore::IntPoint pos, int radius, WebCore::Color& color);
-	virtual void zoom2TextAction(int x, int y);
+	virtual void zoom2TextPre(int x, int y);
+	virtual void zoom2TextPost();
+
+	WebCore::Node* m_zoom2textHitNode;
 #endif
 
     // Handles context menu events orignated via the the keyboard. These

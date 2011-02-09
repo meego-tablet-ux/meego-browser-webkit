@@ -140,7 +140,8 @@ public:
 
 #if defined(TOOLKIT_MEEGOTOUCH)
     virtual void queryNodeTypeAtPoint(int x, int y, bool &is_embedded_object, bool &is_editable_text) {};
-    virtual void zoom2TextAction(int x, int y) {};
+    virtual void zoom2TextPre(int x, int y) {};
+    virtual void zoom2TextPost() {};
 #endif
 
 protected:

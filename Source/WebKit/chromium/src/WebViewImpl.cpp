@@ -2930,7 +2930,7 @@ WebGraphicsContext3D* WebViewImpl::graphicsContext3D()
     return 0;
 }
 
-void WebViewImpl::zoom2TextAction(int x, int y)
+void WebViewImpl::zoom2TextPre(int x, int y)
 {
     if (!mainFrameImpl() || !mainFrameImpl()->frameView())
         return;
@@ -2947,24 +2947,26 @@ void WebViewImpl::zoom2TextAction(int x, int y)
     if (!hitNode || !hitNode->renderer())
         return;
 
+    m_zoom2textHitNode = hitNode;
     // if (!hitNode->isTextNode())
-    //     return;
-    IntRect bounds = hitNode->getRect();
-    IntPoint dest(bounds.x(), mainFrame()->scrollOffset().height);
-    mainFrame()->setScrollPosition(dest);
+    //   return;
+}
 
-    if (hitNode->isElementNode()) {
-        Element* e = static_cast<Element*>(hitNode);
-        e->scrollIntoViewIfNeeded();
+void WebViewImpl::zoom2TextPost()
+{
+    Node* hitNode = m_zoom2textHitNode;
+    IntRect bounds = hitNode->getRect();
+
+    if (hitNode->renderer()->enclosingLayer()) {
+        hitNode->renderer()->enclosingLayer()->
+            scrollRectToVisible(bounds, false,
+                                ScrollAlignment::alignCenterIfNeeded,
+                                ScrollAlignment::alignCenterIfNeeded);
     }else{
-        Element* enclosing = hitNode->enclosingInlineElement();
-        if (enclosing)
-            enclosing->scrollIntoViewIfNeeded();
+        IntPoint dest(bounds.x(), bounds.y());
+
+        mainFrame()->setScrollPosition(dest);
     }
-    // hitNode->renderer()->enclosingLayer()->
-    //     scrollRectToVisible(bounds, false,
-    //                         ScrollAlignment::alignCenterIfNeeded,
-    //                         ScrollAlignment::alignCenterIfNeeded);
 
 }
 
