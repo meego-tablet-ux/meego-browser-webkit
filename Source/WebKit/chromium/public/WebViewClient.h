@@ -51,6 +51,8 @@ class WebElement;
 class WebExternalPopupMenu;
 class WebExternalPopupMenuClient;
 class WebFileChooserCompletion;
+class WebExternalPopupMenu;
+class WebExternalPopupMenuClient;
 class WebFrame;
 class WebGeolocationClient;
 class WebGeolocationService;
