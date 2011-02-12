@@ -142,6 +142,7 @@ public:
     virtual void queryNodeTypeAtPoint(int x, int y, bool &is_embedded_object, bool &is_editable_text) {};
     virtual void zoom2TextPre(int x, int y) {};
     virtual void zoom2TextPost() {};
+    static void setUseExternalPopupMenus(bool);
 #endif
 
 protected:

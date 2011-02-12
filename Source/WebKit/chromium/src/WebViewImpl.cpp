@@ -197,6 +197,9 @@ const char* pageGroupName = "default";
 // a nested event loop. Using a stack enables nesting of message loop invocations.
 static Vector<PageGroupLoadDeferrer*> pageGroupLoadDeferrerStack;
 
+// Whether to use external popup menu
+static  bool shouldUseExternalPopupMenus = false;
+
 // Ensure that the WebDragOperation enum values stay in sync with the original
 // DragOperation constants.
 #define COMPILE_ASSERT_MATCHING_ENUM(coreName) \
@@ -217,8 +220,6 @@ static const PopupContainerSettings autoFillPopupSettings = {
     false // restrictWidthOfListBox (For security reasons show the entire entry
           // so the user doesn't enter information he did not intend to.)
 };
-
-static bool shouldUseExternalPopupMenus = false;
 
 // WebView ----------------------------------------------------------------
 
@@ -517,6 +518,12 @@ void WebViewImpl::touchMove(const WebTouchEvent& event)
     }
 
 }
+// For external popup menu
+void WebWidget::setUseExternalPopupMenus(bool useExternalPopupMenus)
+{
+    shouldUseExternalPopupMenus = useExternalPopupMenus;
+}
+
 #endif
 
 void WebViewImpl::mouseDown(const WebMouseEvent& event)

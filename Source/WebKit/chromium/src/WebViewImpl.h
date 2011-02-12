@@ -569,7 +569,6 @@ private:
     WebCore::IntPoint m_end;
     WebCore::IntPoint m_startPoint; // in content coordinate
     WebCore::IntPoint m_endPoint;   // in content coordinate
-
 #endif
 
     // If we attempt to fetch the on-screen GraphicsContext3D before

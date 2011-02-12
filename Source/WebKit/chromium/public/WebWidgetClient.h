@@ -40,6 +40,9 @@ namespace WebKit {
 
 class WebWidget;
 struct WebCursorInfo;
+class WebExternalPopupMenu;
+class WebExternalPopupMenuClient;
+class WebPopupMenuInfo;
 
 class WebWidgetClient {
 public:
@@ -95,6 +98,11 @@ public:
     // When this method gets called, WebWidgetClient implementation should
     // reset the input method by cancelling any ongoing composition.
     virtual void resetInputMethod() { }
+
+    // Create a external WebPopupMenu which is responsible for rendering the
+    // contents of popup menu in a customized style
+    virtual WebExternalPopupMenu* createExternalPopupMenu(
+            const WebPopupMenuInfo&, WebExternalPopupMenuClient*) { return 0; }
 
 protected:
     ~WebWidgetClient() { }
