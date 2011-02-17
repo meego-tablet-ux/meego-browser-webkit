@@ -1253,7 +1253,7 @@ void WebViewImpl::selectItem(const WebPoint pos)
   HitTestResult result = hitTestResultForWindowPos(point);
   
   Node* innerNode = result.innerNode();
-  if ( !(innerNode && innerNode->renderer()))
+  if ( !(innerNode && innerNode->renderer() && innerNode->nodeType() == Node::TEXT_NODE ))
     return;
 
   RenderObject* renderer = innerNode->renderer();
