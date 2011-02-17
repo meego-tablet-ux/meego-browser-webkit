@@ -554,6 +554,9 @@ private:
 
 #if defined(TOOLKIT_MEEGOTOUCH)
     Vector<WebCore::IntRect> m_cursorRings;
+    WebCore::Frame* m_cursorRingFrame; 
+    WebCore::Frame* m_selectFrame;
+
     void touchStart(const WebTouchEvent& event);
     void touchMove(const WebTouchEvent& event);
     void touchEnd(const WebTouchEvent& event);

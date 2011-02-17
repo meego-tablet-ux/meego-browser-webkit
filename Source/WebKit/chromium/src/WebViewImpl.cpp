@@ -337,6 +337,8 @@ WebViewImpl::WebViewImpl(WebViewClient* client)
 #if ENABLE(INPUT_SPEECH)
     , m_speechInputClient(SpeechInputClientImpl::create(client))
 #endif
+    , m_cursorRingFrame(0)
+    , m_selectFrame(0)
     , m_deviceOrientationClientProxy(new DeviceOrientationClientProxy(client ? client->deviceOrientationClient() : 0))
     , m_geolocationClientProxy(new GeolocationClientProxy(client ? client->geolocationClient() : 0))
 {
@@ -441,7 +443,10 @@ void WebViewImpl::touchStart(const WebTouchEvent& event)
 
     if (result.isLiveLink()) {
       IntRect nr = hitNode->getRect();
-      IntRect rc = m_page->mainFrame()->view()->contentsToWindow(nr);
+      m_cursorRingFrame = result.targetFrame();
+
+      IntRect rc = m_cursorRingFrame->view()->contentsToWindow(nr);
+
       m_cursorRings.append(nr);
       IntRect damageRect(rc.x()- CURSOR_RING_OUTER_DIAMETER, rc.y()- CURSOR_RING_OUTER_DIAMETER,\
 			 rc.width()+2* CURSOR_RING_OUTER_DIAMETER, rc.height()+2* CURSOR_RING_OUTER_DIAMETER);
@@ -461,7 +466,7 @@ void WebViewImpl::touchEnd(const WebTouchEvent& event)
     while (!m_cursorRings.isEmpty())
     {
       IntRect ri = m_cursorRings[0];
-      IntRect rc = m_page->mainFrame()->view()->contentsToWindow(ri);
+      IntRect rc = m_cursorRingFrame->view()->contentsToWindow(ri);
       m_cursorRings.remove(0);
       IntRect dr(rc.x()- CURSOR_RING_OUTER_DIAMETER, rc.y()- CURSOR_RING_OUTER_DIAMETER,\
 		 rc.width()+2* CURSOR_RING_OUTER_DIAMETER, rc.height()+2* CURSOR_RING_OUTER_DIAMETER);
@@ -497,7 +502,7 @@ void WebViewImpl::touchMove(const WebTouchEvent& event)
     while (!m_cursorRings.isEmpty())
     {
       IntRect ri = m_cursorRings[0];
-      IntRect rc = m_page->mainFrame()->view()->contentsToWindow(ri);
+      IntRect rc = m_cursorRingFrame->view()->contentsToWindow(ri);
       m_cursorRings.remove(0);
       IntRect dr(rc.x()- CURSOR_RING_OUTER_DIAMETER, rc.y()- CURSOR_RING_OUTER_DIAMETER,\
 		 rc.width()+2* CURSOR_RING_OUTER_DIAMETER, rc.height()+2* CURSOR_RING_OUTER_DIAMETER);
@@ -532,11 +537,12 @@ void WebViewImpl::mouseDown(const WebMouseEvent& event)
         Node* hitNode = result.innerNonSharedNode();
 
 #if defined(TOOLKIT_MEEGOTOUCH)
+        m_cursorRingFrame = result.targetFrame();
         // clear previous cursor ring
         while (!m_cursorRings.isEmpty())
         {
             IntRect ri = m_cursorRings[0];
-            IntRect rc = m_page->mainFrame()->view()->contentsToWindow(ri);
+            IntRect rc = m_cursorRingFrame->view()->contentsToWindow(ri);
             m_cursorRings.remove(0);
             IntRect dr(rc.x()- CURSOR_RING_OUTER_DIAMETER, rc.y()- CURSOR_RING_OUTER_DIAMETER,\
                  rc.width()+2* CURSOR_RING_OUTER_DIAMETER, rc.height()+2* CURSOR_RING_OUTER_DIAMETER);
@@ -545,7 +551,7 @@ void WebViewImpl::mouseDown(const WebMouseEvent& event)
 
         if (result.isLiveLink()) {
             IntRect nr = hitNode->getRect();
-            IntRect rc = m_page->mainFrame()->view()->contentsToWindow(nr);
+            IntRect rc = m_cursorRingFrame->view()->contentsToWindow(nr);
             m_cursorRings.append(nr);
             IntRect damageRect(rc.x()- CURSOR_RING_OUTER_DIAMETER, rc.y()- CURSOR_RING_OUTER_DIAMETER,\
                    rc.width()+2* CURSOR_RING_OUTER_DIAMETER, rc.height()+2* CURSOR_RING_OUTER_DIAMETER);
@@ -681,15 +687,15 @@ void WebViewImpl::mouseUp(const WebMouseEvent& event)
 #if defined(TOOLKIT_MEEGOTOUCH)
     if (event.button == WebMouseEvent::ButtonLeft)
     {
-      while (!m_cursorRings.isEmpty())
-      {
-          IntRect ri = m_cursorRings[0];
-          IntRect rc = m_page->mainFrame()->view()->contentsToWindow(ri);
-          m_cursorRings.remove(0);
-          IntRect dr(rc.x()- CURSOR_RING_OUTER_DIAMETER, rc.y()- CURSOR_RING_OUTER_DIAMETER,\
-               rc.width()+2* CURSOR_RING_OUTER_DIAMETER, rc.height()+2* CURSOR_RING_OUTER_DIAMETER);
-          m_client->didInvalidateRect(dr);
-      }
+        while (!m_cursorRings.isEmpty())
+        {
+            IntRect ri = m_cursorRings[0];
+            IntRect rc = m_cursorRingFrame->view()->contentsToWindow(ri);
+            m_cursorRings.remove(0);
+            IntRect dr(rc.x()- CURSOR_RING_OUTER_DIAMETER, rc.y()- CURSOR_RING_OUTER_DIAMETER,\
+                 rc.width()+2* CURSOR_RING_OUTER_DIAMETER, rc.height()+2* CURSOR_RING_OUTER_DIAMETER);
+            m_client->didInvalidateRect(dr);
+        }
     }
 #endif
 
@@ -1263,7 +1269,13 @@ void WebViewImpl::selectItem(const WebPoint pos)
     granularity = ParagraphGranularity;
   }
   
-  m_page->mainFrame()->selection()->setSelection(newSelection);
+  // find the right target frame
+  if (result.innerNonSharedNode())
+    m_selectFrame = result.innerNonSharedNode()->document()->frame();
+  else
+    m_selectFrame = m_page->focusController()->focusedOrMainFrame();
+
+  m_selectFrame->selection()->setSelection(newSelection);
 
   // new Selection, need to retrieve the start/end Rect for it
   IntPoint startPoint;
@@ -1273,8 +1285,8 @@ void WebViewImpl::selectItem(const WebPoint pos)
   m_endPoint = endPoint;
     
   // draw the new start/end handlers
-  invalidateSelectionHandler(m_page->mainFrame()->view()->contentsToWindow(startPoint));
-  invalidateSelectionHandler(m_page->mainFrame()->view()->contentsToWindow(endPoint));
+  invalidateSelectionHandler(m_selectFrame->view()->contentsToWindow(startPoint));
+  invalidateSelectionHandler(m_selectFrame->view()->contentsToWindow(endPoint));
 
   // clear the old start/end handlers
   invalidateSelectionHandler(m_cachedSelectionStartPoint);
@@ -1285,7 +1297,11 @@ void WebViewImpl::setSelectionRange(const WebPoint start, const WebPoint end, bo
 {
   if (!set)
   {
-    m_page->mainFrame()->selection()->clear();
+    if (m_selectFrame) 
+    {
+      m_selectFrame->selection()->clear();
+      m_selectFrame = 0;
+    }
     m_startPoint = IntPoint();
     m_endPoint = IntPoint();
   }
@@ -1313,7 +1329,24 @@ void WebViewImpl::setSelectionRange(const WebPoint start, const WebPoint end, bo
     endWord = endOfWord(end);
     if (end != startWord && end!= endWord ) end = endOfWord(end);
       
-    m_page->mainFrame()->selection()->setSelection(VisibleSelection(start, end));
+  // find the right target frame
+    Frame *start_frame, *end_frame;
+    if (start_result.innerNonSharedNode())
+      start_frame = start_result.innerNonSharedNode()->document()->frame();
+    else
+      start_frame = m_page->focusController()->focusedOrMainFrame();
+
+    if (end_result.innerNonSharedNode())
+      end_frame = end_result.innerNonSharedNode()->document()->frame();
+    else
+      end_frame = m_page->focusController()->focusedOrMainFrame();
+
+    if  ( (start_frame != m_selectFrame ) ||
+          (end_frame != m_selectFrame ) ) return;
+
+    SelectionController* sc = m_selectFrame->selection();
+    VisibleSelection sel(start, end);
+    sc->setSelection(sel);
 
     // new Selection, need to retrieve the start/end Rect for it
     IntPoint startPoint;
@@ -1325,8 +1358,8 @@ void WebViewImpl::setSelectionRange(const WebPoint start, const WebPoint end, bo
     if (contentRect.contains(endPoint)) m_endPoint = endPoint;
 
     // draw the new start/end handlers
-    invalidateSelectionHandler(m_page->mainFrame()->view()->contentsToWindow(m_startPoint));
-    invalidateSelectionHandler(m_page->mainFrame()->view()->contentsToWindow(m_endPoint));
+    invalidateSelectionHandler(m_selectFrame->view()->contentsToWindow(m_startPoint));
+    invalidateSelectionHandler(m_selectFrame->view()->contentsToWindow(m_endPoint));
   }
 
   // clear the old start/end handlers
@@ -1343,8 +1376,10 @@ void WebViewImpl::invalidateSelectionHandler(IntPoint pos)
 
 void WebViewImpl::getSelectionStartEndPoint(IntPoint& startPoint, IntPoint& endPoint)
 {
-  SelectionController* sc = m_page->mainFrame()->selection();
-  if (sc->selection().isNone()) return;
+  if (!m_selectFrame) return;
+  SelectionController* sc = m_selectFrame->selection();
+
+  if ( sc->selection().isNone()) return;
 
   VisibleSelection selection = sc->selection();
 
@@ -1385,12 +1420,14 @@ void WebViewImpl::getSelectionStartEndPoint(IntPoint& startPoint, IntPoint& endP
   if (endRect != IntRect())
     endRect = endRenderer->localToAbsoluteQuad(FloatRect(endRect)).enclosingBoundingBox();
 
+  IntPoint start, end;
   if (startRect != endRect)
   {
-    startPoint = IntPoint(startRect.x(), startRect.y()+startRect.height()/2);
-    endPoint = IntPoint(endRect.x(), endRect.y()+endRect.height()/2 );
+    start = IntPoint(startRect.x(), startRect.y()+startRect.height()/2);
+    end = IntPoint(endRect.x(), endRect.y()+endRect.height()/2 );
   }
-
+  startPoint = start;
+  endPoint = end;
 }
 
 void WebViewImpl::drawFilledCircleAtPoint(WebCanvas* canvas, const WebCore::IntPoint pos, int radius, Color& color)
@@ -1440,8 +1477,8 @@ void WebViewImpl::drawSelectionHandle(WebCanvas* canvas, const WebRect& rect)
     if (contentRect.contains(startPoint)) m_startPoint = startPoint;
     if (contentRect.contains(endPoint)) m_endPoint = endPoint;
 
-    start_window = m_page->mainFrame()->view()->contentsToWindow(m_startPoint);
-    end_window = m_page->mainFrame()->view()->contentsToWindow(m_endPoint);
+    start_window = m_selectFrame->view()->contentsToWindow(m_startPoint);
+    end_window = m_selectFrame->view()->contentsToWindow(m_endPoint);
     Color color(0x3f, 0xb3, 0x08, 0x80);
     if (start_window != IntPoint() && end_window != IntPoint())
     {
@@ -1476,6 +1513,9 @@ void WebViewImpl::drawLinkTapHighlight(WebCanvas* canvas, const WebRect& rect)
   if (!m_cursorRings.size())
       return;
 
+  if (!m_cursorRingFrame)
+    return;
+
 #if WEBKIT_USING_CG
     GraphicsContext gc(canvas);
     LocalCurrentGraphicsContext localContext(&gc);
@@ -1492,7 +1532,7 @@ void WebViewImpl::drawLinkTapHighlight(WebCanvas* canvas, const WebRect& rect)
     int rectCount = m_cursorRings.size();
     for (int i=0; i<rectCount; i++)
     {
-      mRings.append(m_page->mainFrame()->view()->contentsToWindow(m_cursorRings[i]));
+      mRings.append(m_cursorRingFrame->view()->contentsToWindow(m_cursorRings[i]));
     }
     gc.drawCursorRing(mRings);
 
@@ -1631,24 +1671,24 @@ bool WebViewImpl::handleInputEvent(const WebInputEvent& inputEvent)
 
 #if ENABLE(TOUCH_EVENTS)
     case WebInputEvent::TouchStart:
+        handled = touchEvent(*static_cast<const WebTouchEvent*>(&inputEvent));
 #if defined(TOOLKIT_MEEGOTOUCH)
         touchStart(*static_cast<const WebTouchEvent*>(&inputEvent));
 #endif
-        handled = touchEvent(*static_cast<const WebTouchEvent*>(&inputEvent));
-	break;
+        break;
     
     case WebInputEvent::TouchMove:
+        handled = touchEvent(*static_cast<const WebTouchEvent*>(&inputEvent));
 #if defined(TOOLKIT_MEEGOTOUCH)
         touchMove(*static_cast<const WebTouchEvent*>(&inputEvent));
 #endif
-        handled = touchEvent(*static_cast<const WebTouchEvent*>(&inputEvent));
 	      break;
     
     case WebInputEvent::TouchEnd:
+        handled = touchEvent(*static_cast<const WebTouchEvent*>(&inputEvent));
 #if defined(TOOLKIT_MEEGOTOUCH)
         touchEnd(*static_cast<const WebTouchEvent*>(&inputEvent));
 #endif
-        handled = touchEvent(*static_cast<const WebTouchEvent*>(&inputEvent));
 	      break;
     
     case WebInputEvent::TouchCancel:
