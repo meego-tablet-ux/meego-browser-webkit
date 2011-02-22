@@ -443,7 +443,14 @@ void WebViewImpl::touchStart(const WebTouchEvent& event)
 
     if (result.isLiveLink()) {
       IntRect nr = hitNode->getRect();
-      m_cursorRingFrame = result.targetFrame();
+
+      Frame* targetFrame;
+      if (result.innerNonSharedNode())
+        targetFrame = result.innerNonSharedNode()->document()->frame();
+      else
+        targetFrame = m_page->focusController()->focusedOrMainFrame();
+
+      m_cursorRingFrame = targetFrame;
 
       IntRect rc = m_cursorRingFrame->view()->contentsToWindow(nr);
 
@@ -537,7 +544,13 @@ void WebViewImpl::mouseDown(const WebMouseEvent& event)
         Node* hitNode = result.innerNonSharedNode();
 
 #if defined(TOOLKIT_MEEGOTOUCH)
-        m_cursorRingFrame = result.targetFrame();
+        Frame* targetFrame;
+        if (result.innerNonSharedNode())
+            targetFrame = result.innerNonSharedNode()->document()->frame();
+        else
+            targetFrame = m_page->focusController()->focusedOrMainFrame();
+
+        m_cursorRingFrame = targetFrame;
         // clear previous cursor ring
         while (!m_cursorRings.isEmpty())
         {
