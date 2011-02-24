@@ -627,6 +627,11 @@ void XMLHttpRequest::createRequest(ExceptionCode& ec)
     ResourceRequest request(m_url);
     request.setHTTPMethod(m_method);
 
+    String allowDownload = getRequestHeader("X-Allow-Download");
+    if (!allowDownload.isEmpty()) {
+        request.setTargetType(ResourceRequest::TargetIsMainFrame);
+    }
+
     if (m_requestEntityBody) {
         ASSERT(m_method != "GET");
         ASSERT(m_method != "HEAD");
