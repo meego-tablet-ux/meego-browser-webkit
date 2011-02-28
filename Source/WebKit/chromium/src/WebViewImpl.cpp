@@ -1899,6 +1899,14 @@ WebTextInputType WebViewImpl::textInputType()
     // Date, Email, URL, etc.
     if (controller->isInPasswordField())
         type = WebTextInputTypePassword;
+    else if (controller->isNumberField())
+        type = WebTextInputTypeNumber;
+    else if (controller->isTelephoneField())
+        type = WebTextInputTypeTelephone;
+    else if (controller->isEmailField())
+        type = WebTextInputTypeEmail;
+    else if (controller->isUrlField())
+        type = WebTextInputTypeUrl;
     else if (node->shouldUseInputMethod())
         type = WebTextInputTypeText;
 

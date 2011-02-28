@@ -128,6 +128,10 @@ public:
     bool isCaretOrRange() const { return m_selection.isCaretOrRange(); }
     bool isInPasswordField() const;
     bool isAll(EditingBoundaryCrossingRule rule = CannotCrossEditingBoundary) const { return m_selection.isAll(rule); }
+    bool isNumberField() const;
+    bool isTelephoneField() const; 
+    bool isUrlField() const;
+    bool isEmailField() const;
     
     PassRefPtr<Range> toNormalizedRange() const { return m_selection.toNormalizedRange(); }
 

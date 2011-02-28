@@ -61,7 +61,7 @@
 #include "visible_units.h"
 #include <stdio.h>
 #include <wtf/text/CString.h>
-
+//#include <QEvent>
 #define EDIT_DEBUG 0
 
 namespace WebCore {
@@ -1479,6 +1479,71 @@ bool SelectionController::isInPasswordField() const
     
     return static_cast<HTMLInputElement*>(startNode)->isPasswordField();
 }
+
+bool SelectionController::isNumberField() const
+{
+    Node* startNode = start().anchorNode();
+    if (!startNode)
+        return false;
+
+    startNode = startNode->shadowAncestorNode();
+    if (!startNode)
+        return false;
+
+    if (!startNode->hasTagName(inputTag))
+        return false;
+
+    return static_cast<HTMLInputElement*>(startNode)->isNumberField();
+}
+
+bool SelectionController::isTelephoneField() const
+{
+    Node* startNode = start().anchorNode();
+    if (!startNode)
+        return false;
+ //   qCritical("1");
+    startNode = startNode->shadowAncestorNode();
+    if (!startNode)
+        return false;
+//    qCritical("2");
+    if (!startNode->hasTagName(inputTag))
+        return false;
+//    qCritical("3");
+    return static_cast<HTMLInputElement*>(startNode)->isTelephoneField();
+}
+
+bool SelectionController::isEmailField() const
+{
+    Node* startNode = start().anchorNode();
+    if (!startNode)
+        return false;
+        
+    startNode = startNode->shadowAncestorNode();
+    if (!startNode)
+        return false;
+
+    if (!startNode->hasTagName(inputTag))
+        return false;
+
+    return static_cast<HTMLInputElement*>(startNode)->isEmailField();
+}
+
+bool SelectionController::isUrlField() const
+{
+    Node* startNode = start().anchorNode();
+    if (!startNode)
+        return false;
+        
+    startNode = startNode->shadowAncestorNode();
+    if (!startNode)
+        return false;
+
+    if (!startNode->hasTagName(inputTag))
+        return false;
+
+    return static_cast<HTMLInputElement*>(startNode)->isURLField();
+}
+
 
 bool SelectionController::caretRendersInsideNode(Node* node) const
 {

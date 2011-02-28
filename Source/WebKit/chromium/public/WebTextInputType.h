@@ -44,8 +44,22 @@ enum WebTextInputType {
     // it's suitable for password input.
     WebTextInputTypePassword,
 
-    // FIXME: Add more text input types when necessary, eg. Number,
-    // Date, Email, URL, etc.
+    // Input caret is in a normal editable node, number input method can be used.
+    // it's suitable for number input.
+    WebTextInputTypeNumber,
+   
+    // Input caret is in a normal editable node, telephone input method can be used.
+    // it's suitable for telephone input.
+    WebTextInputTypeTelephone,
+
+    // Input caret is in a normal editable node, any input method can be used.
+    // Would be changed when VKB support url input method.
+    WebTextInputTypeUrl,
+
+    // Input caret is in a normal editable node, any input method can be used. 
+    // Would be changed when VKB support email input method.
+    WebTextInputTypeEmail,
+    // FIXME: Add more text input types when necessary.
 };
 
 } // namespace WebKit
