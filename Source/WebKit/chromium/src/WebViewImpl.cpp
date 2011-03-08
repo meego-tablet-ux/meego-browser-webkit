@@ -443,7 +443,8 @@ void WebViewImpl::touchStart(const WebTouchEvent& event)
     Node* hitNode = result.innerNonSharedNode();
 
     if (result.isLiveLink()) {
-      IntRect nr = hitNode->getRect();
+      Node* enclosing = hitNode->enclosingLinkEventParentOrSelf();
+      IntRect nr = enclosing->getRect();
 
       Frame* targetFrame;
       if (result.innerNonSharedNode())
@@ -570,7 +571,8 @@ void WebViewImpl::mouseDown(const WebMouseEvent& event)
         }
 
         if (result.isLiveLink()) {
-            IntRect nr = hitNode->getRect();
+            Node* enclosing = hitNode->enclosingLinkEventParentOrSelf();
+            IntRect nr = enclosing->getRect();
             IntRect rc = m_cursorRingFrame->view()->contentsToWindow(nr);
             m_cursorRings.append(nr);
             IntRect damageRect(rc.x()- CURSOR_RING_OUTER_DIAMETER, rc.y()- CURSOR_RING_OUTER_DIAMETER,\
