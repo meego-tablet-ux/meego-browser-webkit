@@ -151,6 +151,8 @@
 #if defined(TOOLKIT_MEEGOTOUCH)
 #define CURSOR_RING_OUTER_DIAMETER 4 // SkFixedToScalar(SkIntToFixed(13)>>2) // 13/4 == 3.25
 #define CARET_RADIUS SkIntToScalar(20)
+#include "RenderTextControl.h"
+#include "TextIterator.h"
 #endif
 
 using namespace WebCore;
@@ -3039,5 +3041,49 @@ void WebViewImpl::zoom2TextPost()
     }
 
 }
+
+#if defined(TOOLKIT_MEEGOTOUCH)
+void WebViewImpl::queryEditorCurrentSelection(WebString& selection) 
+{
+    const Frame* focused = focusedWebCoreFrame();
+    if (!focused)
+        return;
+
+    const Editor* editor = focused->editor();
+    if (!editor || !editor->canEdit())
+        return;
+
+    selection = WebString(editor->selectedText());
+}
+
+void WebViewImpl::queryEditorSurroundingText(WebString& surrounding_text) 
+{
+    const Frame* focused = focusedWebCoreFrame();
+    if (!focused)
+        return;
+
+    const Editor* editor = focused->editor();
+    if (!editor || !editor->canEdit())
+        return;
+
+    RenderObject* renderer = 0;
+    RenderTextControl* renderTextControl = 0;
+
+    if (focused->selection()->rootEditableElement())
+        renderer = m_page->mainFrame()->selection()->rootEditableElement()->shadowAncestorNode()->renderer();
+
+    if (renderer && renderer->isTextControl())
+        renderTextControl = toRenderTextControl(renderer);
+
+    if (renderTextControl) {
+        std::string text(renderTextControl->text().utf8().data());
+        RefPtr<Range> range = editor->compositionRange();
+        if (range) {
+            text.erase(range->startPosition().offsetInContainerNode(), TextIterator::rangeLength(range.get()));
+        }
+        surrounding_text = WebString::fromUTF8(text.data());
+    }
+}
+#endif
 
 } // namespace WebKit

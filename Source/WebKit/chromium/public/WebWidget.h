@@ -143,6 +143,8 @@ public:
     virtual void zoom2TextPre(int x, int y) {};
     virtual void zoom2TextPost() {};
     static void setUseExternalPopupMenus(bool);
+    virtual void queryEditorCurrentSelection(WebString& selection) {};
+    virtual void queryEditorSurroundingText(WebString& surrounding_text) {};
 #endif
 
 protected:
