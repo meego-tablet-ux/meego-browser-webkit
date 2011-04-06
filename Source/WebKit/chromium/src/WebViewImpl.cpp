@@ -3043,6 +3043,34 @@ void WebViewImpl::zoom2TextPost()
 }
 
 #if defined(TOOLKIT_MEEGOTOUCH)
+void WebViewImpl::queryEditorCursorPosition(int& cursor_position) 
+{
+    const Frame* focused = focusedWebCoreFrame();
+    if (!focused)
+        return;
+
+    const Editor* editor = focused->editor();
+    if (!editor || !editor->canEdit())
+        return;
+
+    RenderObject* renderer = 0;
+    RenderTextControl* renderTextControl = 0;
+
+    if (focused->selection()->rootEditableElement())
+        renderer = m_page->mainFrame()->selection()->rootEditableElement()->shadowAncestorNode()->renderer();
+
+    if (renderer && renderer->isTextControl())
+        renderTextControl = toRenderTextControl(renderer);
+
+    if (renderTextControl) {
+        if (editor->hasComposition()) {
+            RefPtr<Range> range = editor->compositionRange();
+            cursor_position = renderTextControl->selectionEnd() - TextIterator::rangeLength(range.get());
+        }
+        cursor_position = focused->selection()->extent().offsetInContainerNode();
+    }
+}
+
 void WebViewImpl::queryEditorCurrentSelection(WebString& selection) 
 {
     const Frame* focused = focusedWebCoreFrame();

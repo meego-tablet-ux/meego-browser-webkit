@@ -269,6 +269,7 @@ public:
 	virtual void drawFilledCircleAtPoint(WebCanvas* canvas, const WebCore::IntPoint pos, int radius, WebCore::Color& color);
 	virtual void zoom2TextPre(int x, int y);
 	virtual void zoom2TextPost();
+  virtual void queryEditorCursorPosition(int& cursor_position);
   virtual void queryEditorCurrentSelection(WebString& selection);
   virtual void queryEditorSurroundingText(WebString& surrounding_text);
 
