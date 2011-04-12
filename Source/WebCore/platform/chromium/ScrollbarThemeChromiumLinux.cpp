@@ -45,9 +45,13 @@ ScrollbarTheme* ScrollbarTheme::nativeTheme()
 
 int ScrollbarThemeChromiumLinux::scrollbarThickness(ScrollbarControlSize controlSize)
 {
+#if defined(TOOLKIT_MEEGOTOUCH)
+  return 0;
+#else
     // Horiz and Vert scrollbars are the same thickness.
     IntSize scrollbarSize = PlatformBridge::getThemePartSize(PlatformBridge::PartScrollbarVerticalTrack);
     return scrollbarSize.width();
+#endif
 }
 
 void ScrollbarThemeChromiumLinux::paintTrackPiece(GraphicsContext* gc, Scrollbar* scrollbar, const IntRect& rect, ScrollbarPart partType)
@@ -127,6 +131,9 @@ bool ScrollbarThemeChromiumLinux::shouldCenterOnThumb(Scrollbar*, const Platform
 
 IntSize ScrollbarThemeChromiumLinux::buttonSize(Scrollbar* scrollbar)
 {
+#if defined(TOOLKIT_MEEGOTOUCH)
+  return IntSize(0, 0);
+#else
     if (scrollbar->orientation() == VerticalScrollbar) {
         IntSize size = PlatformBridge::getThemePartSize(PlatformBridge::PartScrollbarUpArrow);
         return IntSize(size.width(), scrollbar->height() < 2 * size.height() ? scrollbar->height() / 2 : size.height());
@@ -135,6 +142,7 @@ IntSize ScrollbarThemeChromiumLinux::buttonSize(Scrollbar* scrollbar)
     // HorizontalScrollbar
     IntSize size = PlatformBridge::getThemePartSize(PlatformBridge::PartScrollbarLeftArrow);
     return IntSize(scrollbar->width() < 2 * size.width() ? scrollbar->width() / 2 : size.width(), size.height());
+#endif
 }
 
 int ScrollbarThemeChromiumLinux::minimumThumbLength(Scrollbar* scrollbar)

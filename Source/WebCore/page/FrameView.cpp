@@ -1428,6 +1428,11 @@ void FrameView::setScrollPosition(const IntPoint& scrollPoint)
     m_maintainScrollPositionAnchor = 0;
     ScrollView::setScrollPosition(scrollPoint);
     m_inProgrammaticScroll = wasInProgrammaticScroll;
+
+    // Hack to scroll flickable
+    IntSize size;
+    IntRect rect(scrollPoint, size);
+    hostWindow()->scroll(size, rect, rect);
 }
 
 void FrameView::scrollPositionChangedViaPlatformWidget()

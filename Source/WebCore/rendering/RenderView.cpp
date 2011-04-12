@@ -91,7 +91,7 @@ void RenderView::computeLogicalWidth()
     const Settings * settings = document()->settings();
     ASSERT(settings);
     if (settings->layoutAlgorithm() == Settings::kLayoutFitColumnToScreen)
-        m_visibleWidth = m_frameView->screenWidth();
+        m_visibleWidth = m_frameView->fixedLayoutSize().width();
     if (settings->useWideViewport() &&
 	width() < minPreferredLogicalWidth())
 

@@ -93,6 +93,10 @@ public:
     virtual void close();
     virtual WebSize size() { return m_size; }
     virtual void resize(const WebSize&);
+    virtual void setPreferredContentsSize(const WebSize&);
+    virtual WebSize preferredContentsSize() { return m_preferredContentsSize;}
+    virtual void setViewportSize(const WebSize&);
+    virtual WebSize viewportSize() { return m_viewportSize;}
     virtual void animate();
     virtual void layout();
     virtual void paint(WebCanvas*, const WebRect&);
@@ -441,6 +445,9 @@ private:
     InspectorClientImpl m_inspectorClientImpl;
 
     WebSize m_size;
+
+    WebSize m_preferredContentsSize;
+    WebSize m_viewportSize;
 
     WebPoint m_lastMousePosition;
     OwnPtr<WebCore::Page> m_page;

@@ -61,6 +61,14 @@ public:
     // paint, although the client can rate-limit these calls.
     virtual void animate() = 0;
 
+    // set preferred size
+    virtual void setPreferredContentsSize(const WebSize&) = 0;
+    virtual WebSize preferredContentsSize() = 0;
+
+    // set viewport size
+    virtual void setViewportSize(const WebSize&) = 0;
+    virtual WebSize viewportSize() = 0;
+
     // Called to layout the WebWidget.  This MUST be called before Paint,
     // and it may result in calls to WebWidgetClient::didInvalidateRect.
     virtual void layout() = 0;

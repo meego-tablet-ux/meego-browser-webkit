@@ -1174,7 +1174,7 @@ void RenderBlock::layoutBlock(bool relayoutChildren, int pageLogicalHeight)
     const Settings* settings = document()->settings();
     ASSERT(settings);
     if (oldVisibleWidth != m_visibleWidth
-            && settings->layoutAlgorithm() == Settings::kLayoutFitColumnToScreen)
+          && settings->layoutAlgorithm() == Settings::kLayoutFitColumnToScreen)
         relayoutChildren = true;
 #endif
 

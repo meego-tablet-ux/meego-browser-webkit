@@ -268,7 +268,7 @@ void RenderTableSection::setCellLogicalWidths()
         const Settings* settings = document()->settings();
         ASSERT(settings);
         if (settings->layoutAlgorithm() == Settings::kLayoutFitColumnToScreen)
-            visibleWidth = view()->frameView()->screenWidth();
+            visibleWidth = view()->frameView()->fixedLayoutSize().width();
     }
 #endif
 

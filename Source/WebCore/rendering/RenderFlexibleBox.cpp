@@ -241,7 +241,7 @@ void RenderFlexibleBox::layoutBlock(bool relayoutChildren, int /*pageHeight FIXM
     const Settings* settings = document()->settings();
     ASSERT(settings);
     if (previousVisibleWidth != m_visibleWidth
-	&& settings->layoutAlgorithm() == Settings::kLayoutFitColumnToScreen)
+          && settings->layoutAlgorithm() == Settings::kLayoutFitColumnToScreen)
       relayoutChildren = true;
 #endif
     setHeight(0);

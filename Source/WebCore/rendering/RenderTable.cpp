@@ -221,7 +221,7 @@ void RenderTable::computeLogicalWidth()
         const Settings* settings = document()->settings();
         ASSERT(settings);
         if (settings->layoutAlgorithm() == Settings::kLayoutFitColumnToScreen) {
-            m_visibleWidth = view()->frameView()->screenWidth();
+            m_visibleWidth = view()->frameView()->fixedLayoutSize().width();
         }
     }
 #endif
@@ -311,7 +311,7 @@ void RenderTable::layout()
 
 #ifdef ANDROID_LAYOUT
     if (oldVisibleWidth != m_visibleWidth
-        && document()->settings()->layoutAlgorithm() == Settings::kLayoutFitColumnToScreen)
+          && document()->settings()->layoutAlgorithm() == Settings::kLayoutFitColumnToScreen)
         relayoutChildren = true;
     else if (document()->settings()->layoutAlgorithm() == Settings::kLayoutSSR) {
         // if the width of a table is wider than its container width, or it has a nested table,

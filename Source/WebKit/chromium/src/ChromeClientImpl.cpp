@@ -553,9 +553,14 @@ void ChromeClientImpl::scroll(
     if (!m_webView->isAcceleratedCompositingActive()) {
 #endif
         if (m_webView->client()) {
+#if 0
             int dx = scrollDelta.width();
             int dy = scrollDelta.height();
             m_webView->client()->didScrollRect(dx, dy, clipRect);
+#else
+            //Hack to scroll flickable
+            m_webView->client()->scrollRectToVisible(scrollRect);
+#endif
         }
 #if USE(ACCELERATED_COMPOSITING)
     } else

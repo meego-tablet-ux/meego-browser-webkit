@@ -875,7 +875,7 @@ void RenderBlock::layoutInlineChildren(bool relayoutChildren, int& repaintLogica
                 obj = obj->container();
             }
             if (!isConstrained) {
-                int screenWidth = view()->frameView()->screenWidth();
+                int screenWidth = view()->frameView()->fixedLayoutSize().width();
                 int padding = paddingLeft() + paddingRight();
                 if (screenWidth > 0 && width() > (screenWidth + padding)) {
                     // limit the content width (width excluding padding) to be

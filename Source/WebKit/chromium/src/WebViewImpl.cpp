@@ -1145,6 +1145,36 @@ void WebViewImpl::close()
     deref();  // Balances ref() acquired in WebView::create
 }
 
+void WebViewImpl::setViewportSize(const WebSize& size)
+{
+//  if (m_viewportSize == size)
+//    return;
+
+  m_viewportSize = size;
+  
+  WebFrameImpl* webframe = mainFrameImpl();
+  if (webframe) {
+    FrameView* view = webframe->frameView();
+    if (view)
+    {
+      view->setFrameRect(IntRect(0, 0, m_viewportSize.width, m_viewportSize.height));
+      view->adjustViewSize();
+    }
+  }
+}
+
+void WebViewImpl::setPreferredContentsSize(const WebSize& newSize)
+{
+  m_preferredContentsSize = newSize;
+  
+  if (mainFrameImpl()->frameView()) {
+    mainFrameImpl()->frameView()->setUseFixedLayout(true);
+    mainFrameImpl()->frameView()->setFixedLayoutSize(m_preferredContentsSize);
+    mainFrameImpl()->frameView()->forceLayout();
+  }  
+}
+
+
 void WebViewImpl::resize(const WebSize& newSize)
 {
     if (m_size == newSize)
@@ -1152,8 +1182,10 @@ void WebViewImpl::resize(const WebSize& newSize)
     m_size = newSize;
 
     if (mainFrameImpl()->frameView()) {
-        mainFrameImpl()->frameView()->resize(m_size.width, m_size.height);
-        mainFrameImpl()->frame()->eventHandler()->sendResizeEvent();
+      mainFrameImpl()->frameView()->setUseFixedLayout(false);
+      mainFrameImpl()->frameView()->resize(m_size.width, m_size.height);
+      mainFrameImpl()->frame()->eventHandler()->sendResizeEvent();
+
     }
 
     if (m_client) {
@@ -3029,6 +3061,7 @@ void WebViewImpl::zoom2TextPost()
     Node* hitNode = m_zoom2textHitNode;
     IntRect bounds = hitNode->getRect();
 
+#if 0
     if (hitNode->renderer()->enclosingLayer()) {
         hitNode->renderer()->enclosingLayer()->
             scrollRectToVisible(bounds, false,
@@ -3039,7 +3072,10 @@ void WebViewImpl::zoom2TextPost()
 
         mainFrame()->setScrollPosition(dest);
     }
-
+#else
+    // In tiling mode, should set the position in browser flickable
+    m_client->scrollRectToVisible(bounds);
+#endif
 }
 
 #if defined(TOOLKIT_MEEGOTOUCH)

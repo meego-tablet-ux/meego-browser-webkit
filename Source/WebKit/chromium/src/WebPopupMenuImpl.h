@@ -62,6 +62,10 @@ public:
     virtual void close();
     virtual WebSize size() { return m_size; }
     virtual void resize(const WebSize&);
+    virtual void setPreferredContentsSize(const WebSize&) {}
+    virtual WebSize preferredContentsSize() { return m_size; }
+    virtual void setViewportSize(const WebSize&) {}
+    virtual WebSize viewportSize() { return m_size; }
     virtual void animate();
     virtual void layout();
     virtual void paint(WebCanvas* canvas, const WebRect& rect);

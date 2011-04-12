@@ -49,6 +49,9 @@ public:
     // Called when a region of the WebWidget needs to be re-painted.
     virtual void didInvalidateRect(const WebRect&) { }
 
+    // Called when scroll a rect to visible
+    virtual void scrollRectToVisible(const WebRect&) {}
+    
     // Called when a region of the WebWidget, given by clipRect, should be
     // scrolled by the specified dx and dy amounts.
     virtual void didScrollRect(int dx, int dy, const WebRect& clipRect) { }

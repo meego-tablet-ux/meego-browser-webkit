@@ -127,6 +127,7 @@ public:
 
     virtual LayoutAlgorithm getLayoutAlgorithm() = 0;
     virtual void setLayoutAlgorithm(LayoutAlgorithm algo) = 0;
+
 protected:
     ~WebSettings() { }
 };
