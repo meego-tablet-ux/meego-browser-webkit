@@ -3092,8 +3092,9 @@ void WebViewImpl::queryEditorCursorPosition(int& cursor_position)
     RenderObject* renderer = 0;
     RenderTextControl* renderTextControl = 0;
 
-    if (focused->selection()->rootEditableElement())
-        renderer = m_page->mainFrame()->selection()->rootEditableElement()->shadowAncestorNode()->renderer();
+    Node* node = focused->selection()->rootEditableElement();
+    if (node)
+        renderer = node->shadowAncestorNode()->renderer();
 
     if (renderer && renderer->isTextControl())
         renderTextControl = toRenderTextControl(renderer);
@@ -3133,8 +3134,9 @@ void WebViewImpl::queryEditorSurroundingText(WebString& surrounding_text)
     RenderObject* renderer = 0;
     RenderTextControl* renderTextControl = 0;
 
-    if (focused->selection()->rootEditableElement())
-        renderer = m_page->mainFrame()->selection()->rootEditableElement()->shadowAncestorNode()->renderer();
+    Node* node = focused->selection()->rootEditableElement();
+    if (node)
+        renderer = node->shadowAncestorNode()->renderer();
 
     if (renderer && renderer->isTextControl())
         renderTextControl = toRenderTextControl(renderer);
