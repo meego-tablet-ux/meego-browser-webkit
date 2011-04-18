@@ -3103,8 +3103,9 @@ void WebViewImpl::queryEditorCursorPosition(int& cursor_position)
         if (editor->hasComposition()) {
             RefPtr<Range> range = editor->compositionRange();
             cursor_position = renderTextControl->selectionEnd() - TextIterator::rangeLength(range.get());
+        } else {
+            cursor_position = focused->selection()->extent().computeOffsetInContainerNode();
         }
-        cursor_position = focused->selection()->extent().offsetInContainerNode();
     }
 }
 
