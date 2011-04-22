@@ -1,3 +1,838 @@
+2011-04-21  Beth Dakin  <bdakin@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        https://bugs.webkit.org/show_bug.cgi?id=57898
+        REGRESSION (r82185): Scroll position not restored on navigation back to a page in 
+        the page cache
+        -and corresponding-
+        <rdar://problem/9226652>
+
+        The original fix for this change broke scroll-position restore for pages that are 
+        *not* in the page cache. This patch fixes both cached and non-cached pages by 
+        using the cachedScrollPosition() only for cached pages.
+        * loader/HistoryController.cpp:
+        (WebCore::HistoryController::saveScrollPositionAndViewStateToItem):
+
+2011-04-21  Luke Macpherson   <macpherson@chromium.org>
+
+        Reviewed by Eric Seidel.
+
+        Remove redundant calls to RenderStyle::setDisplay()
+        https://bugs.webkit.org/show_bug.cgi?id=59060
+
+        No new tests / no new functionality added.
+
+        * css/CSSStyleSelector.cpp:
+        (WebCore::CSSStyleSelector::applyProperty):
+        Remove redundant calls to RenderStyle::setDisplay()
+
+2011-04-21  John Bauman  <jbauman@chromium.org>
+
+        Reviewed by Kenneth Russell.
+
+        WebGL context drawing buffer may not be cleared if FBO bound
+        https://bugs.webkit.org/show_bug.cgi?id=58956
+
+        Clear the drawing buffer even if it's not currently bound, by
+        switching between FBOs around the clear. Also, make sure that we
+        handle depth and stencil masks properly.
+
+        No new tests, because testing this under DRT doesn't work.
+
+        * html/canvas/WebGLRenderingContext.cpp:
+        (WebCore::WebGLRenderingContext::initializeNewContext):
+        (WebCore::WebGLRenderingContext::clearIfComposited):
+        (WebCore::WebGLRenderingContext::depthMask):
+        * html/canvas/WebGLRenderingContext.h:
+        *
+2011-04-21  Chris Fleizach  <cfleizach@apple.com>
+
+        Reviewed by Beth Dakin.
+
+        WebKit is erroneously modifying the DOM; adding 'aria-selected' to tables
+        https://bugs.webkit.org/show_bug.cgi?id=59140
+
+        WebKit should not modify the DOM when the screen reader requests certain things be set. There is no
+        specification that allows this behavior yet, but we are working on something for the future.
+
+        * accessibility/AccessibilityRenderObject.cpp:
+        (WebCore::AccessibilityRenderObject::setARIAGrabbed):
+        (WebCore::AccessibilityRenderObject::setIsExpanded):
+        (WebCore::AccessibilityRenderObject::setSelected):
+        (WebCore::AccessibilityRenderObject::setValue):
+
+2011-04-21  Chris Fleizach  <cfleizach@apple.com>
+
+        Reviewed by Beth Dakin.
+
+        AX: order AccessibilityRole alphabetically
+        https://bugs.webkit.org/show_bug.cgi?id=31524
+
+        * accessibility/AccessibilityObject.h:
+
+2011-04-21  Jia Pu  <jpu@apple.com>
+
+        Reviewed by Maciej Stachowiak.
+
+        [Mac] correctionPanelTimerFired() crashes due to rangeToBeReplaced being cleared.
+        https://bugs.webkit.org/show_bug.cgi?id=59155
+        <rdar://problem/9261698>
+
+        Make sure the range isn't cleared before calling windowRectForRange() on it. Also removed unused functions in Editor.h,
+        and fixed a typo in function name.
+
+        * editing/Editor.h:
+        * editing/SpellingCorrectionController.cpp:
+        (WebCore::SpellingCorrectionController::correctionPanelTimerFired):
+        (WebCore::SpellingCorrectionController::respondToChangedSelection):
+        * editing/SpellingCorrectionController.h:
+        (WebCore::SpellingCorrectionController::shouldStartTimerFor):
+
+2011-04-21  Maciej Stachowiak  <mjs@apple.com>
+
+        Reviewed by Adam Roben.
+
+        Add a feature define to allow <details> and <summary> to be disabled
+        https://bugs.webkit.org/show_bug.cgi?id=59118
+        <rdar://problem/9257045>
+
+        No new tests; no behavior change.
+
+        * Configurations/FeatureDefines.xcconfig:
+        * DerivedSources.make:
+        * GNUmakefile.am:
+        * features.pri:
+        * html/HTMLDetailsElement.cpp:
+        * html/HTMLSummaryElement.cpp:
+        * html/HTMLTagNames.in:
+        * html/shadow/DetailsMarkerControl.cpp:
+        * rendering/RenderBlock.cpp:
+        (WebCore::canMergeContiguousAnonymousBlocks):
+        * rendering/RenderDetails.cpp:
+        * rendering/RenderDetails.h:
+        * rendering/RenderDetailsMarker.cpp:
+        * rendering/RenderDetailsMarker.h:
+        * rendering/RenderObject.h:
+        * rendering/RenderSummary.cpp:
+        * rendering/RenderSummary.h:
+        * rendering/RenderTreeAsText.cpp:
+        (WebCore::RenderTreeAsText::writeRenderObject):
+
+2011-04-21  Dimitri Glazkov  <dglazkov@chromium.org>
+
+        Reviewed by Adele Peterson.
+
+        REGRESSION (r83386): Typing in WSJ.com search field doesn't clear placeholder text
+        https://bugs.webkit.org/show_bug.cgi?id=59053
+
+        Turns out, the relatedTarget of an event could be also an ancestor of an event,
+        not just its parent. Duh.
+
+        * dom/EventDispatcher.cpp:
+        (WebCore::EventDispatcher::adjustToShadowBoundaries): Changed to use shadowHost
+            explicitly.
+
+2011-04-21  Michael Saboff  <msaboff@apple.com>
+
+        Reviewed by Maciej Stachowiak.
+
+        Qualified names used for all TagName access, yet namespace usage is rare
+        https://bugs.webkit.org/show_bug.cgi?id=58997
+
+        The methods getElementsByTagName and getElementsByTagNameNS where
+        always creating and using QualifiedNames.  QualifiedName::init
+        was consistently in the top 3 routines when running the Dromaeo
+        DOM-query benchmark.  Split out the functionality so that
+        getElementsByTagName uses just the local name, an implied "*"
+        namespace and a separate TagNodeListCache keyed by an atomic name
+        instead of a QualifiedName.  Access to elements via
+        getElementsByTagNameNS that have "*" namespace are forwarded to
+        getElementsByTagName as well.  This provides ~10% speed up in that
+        Dromaeo test.
+
+        No new tests added, existing tests have coverage.  The changes are
+        an optimization of existing functionality.
+
+        * dom/Node.cpp:
+        (WebCore::Node::removeCachedTagNodeList):
+        (WebCore::Node::getElementsByTagName):
+        (WebCore::Node::getElementsByTagNameNS):
+        (WebCore::NodeListsNodeData::invalidateCaches):
+        (WebCore::NodeListsNodeData::isEmpty):
+        * dom/Node.h:
+        * dom/NodeRareData.h:
+        * dom/TagNodeList.cpp:
+        (WebCore::TagNodeList::~TagNodeList):
+
+2011-04-21  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Removed a use of markDOMObjectWrapper: more style- and node-related stuff
+        https://bugs.webkit.org/show_bug.cgi?id=59127
+
+        * bindings/js/JSCanvasRenderingContextCustom.cpp:
+        * bindings/js/JSCanvasRenderingContextCustom.cpp:
+        (WebCore::JSCanvasRenderingContextOwner::isReachableFromOpaqueRoots):
+        (WebCore::JSCanvasRenderingContextOwner::finalize):
+        (WebCore::wrapperOwner):
+        (WebCore::wrapperContext): Use opaque roots for marking canvas rendering
+        contexts, so JSNode isn't responsible for it.
+
+        * bindings/js/JSElementCustom.cpp:
+        (WebCore::JSElement::markChildren):
+        * bindings/js/JSHTMLCanvasElementCustom.cpp:
+        * bindings/js/JSHTMLLinkElementCustom.cpp:
+        * bindings/js/JSHTMLStyleElementCustom.cpp: Removed obsolete marking code.
+
+        * bindings/js/JSNodeCustom.cpp:
+        (WebCore::isObservable):
+        (WebCore::isReachableFromDOM):
+        (WebCore::JSNodeOwner::isReachableFromOpaqueRoots): Removed a bunch of
+        CSS object model related special cases, since the CSS object model
+        now tracks its own lifetime through the opaque roots system. Removed
+        canvas special case, covered above.
+
+        * bindings/js/JSProcessingInstructionCustom.cpp:
+        * bindings/js/JSWebKitAnimationListCustom.cpp:
+        * dom/ProcessingInstruction.idl:
+        * html/HTMLCanvasElement.idl:
+        * html/HTMLLinkElement.idl:
+        * html/HTMLStyleElement.idl:
+        * page/WebKitAnimationList.idl: Removed obsolete marking code.
+
+2011-04-21  Vangelis Kokkevis  <vangelis@chromium.org>
+
+        Reviewed by James Robinson.
+
+        [chromium] Only update the contents of layers that are going to
+        be drawn. Remove individual texture unreserves that happen
+        after the layer draw calls with a single unreserve for all the
+        textures in the texture manager.
+        https://bugs.webkit.org/show_bug.cgi?id=59129
+
+        Tests: No new functionality.  Covered by existing layout tests.
+
+        * platform/graphics/chromium/ContentLayerChromium.cpp:
+        (WebCore::ContentLayerChromium::draw):
+        * platform/graphics/chromium/ContentLayerChromium.h:
+        * platform/graphics/chromium/ImageLayerChromium.cpp:
+        (WebCore::ImageLayerChromium::paintContentsIfDirty):
+        (WebCore::ImageLayerChromium::updateCompositorResources):
+        * platform/graphics/chromium/LayerRendererChromium.cpp:
+        (WebCore::LayerRendererChromium::drawRootLayer):
+        (WebCore::LayerRendererChromium::updateAndDrawLayers):
+        (WebCore::LayerRendererChromium::updateLayers):
+        (WebCore::LayerRendererChromium::paintLayerContents):
+        * platform/graphics/chromium/LayerRendererChromium.h:
+        * platform/graphics/chromium/LayerTexture.cpp:
+        * platform/graphics/chromium/LayerTexture.h:
+        * platform/graphics/chromium/LayerTilerChromium.cpp:
+        * platform/graphics/chromium/LayerTilerChromium.h:
+        * platform/graphics/chromium/RenderSurfaceChromium.cpp:
+        (WebCore::RenderSurfaceChromium::drawSurface):
+        * platform/graphics/chromium/TextureManager.cpp:
+        (WebCore::TextureManager::unprotectAllTextures):
+        * platform/graphics/chromium/TextureManager.h:
+        * platform/graphics/chromium/cc/CCHeadsUpDisplay.cpp:
+        (WebCore::CCHeadsUpDisplay::draw):
+        * platform/graphics/chromium/cc/CCLayerImpl.h:
+        (WebCore::CCLayerImpl::owner):
+
+2011-04-21  Ryosuke Niwa  <rniwa@webkit.org>
+
+        Reviewed by Sam Weinig.
+
+        Add Frame* to the argument lists of canCopyCut and canPaste
+        https://bugs.webkit.org/show_bug.cgi?id=59153
+
+        canCopyCut and canPaste now takes Frame* for which supportedCopyCut and supportedPaste are called.
+        This allows editor client to grant copy/cut and paste permissions per origin.
+
+        * editing/EditorCommand.cpp:
+        (WebCore::supportedCopyCut):
+        (WebCore::supportedPaste):
+        * loader/EmptyClients.h:
+        (WebCore::EmptyEditorClient::canCopyCut):
+        (WebCore::EmptyEditorClient::canPaste):
+        * page/EditorClient.h:
+
+2011-04-21  Oliver Hunt  <oliver@apple.com>
+
+        Whoops, change lost during merge
+
+        * bindings/js/JSEventListener.h:
+
+2011-04-21  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Fixed a failure seen in fast/dom/prototype-inheritance-2.html due to
+        wrong global object use.
+
+        * bindings/js/JSHTMLDocumentCustom.cpp:
+        (WebCore::JSHTMLDocument::nameGetter):
+        (WebCore::JSHTMLDocument::all):
+        * bindings/js/JSHTMLFormElementCustom.cpp:
+        (WebCore::JSHTMLFormElement::nameGetter): Use the right global object.
+
+2011-04-21  Oliver Hunt  <oliver@apple.com>
+
+        Reviewed by Geoffrey Garen.
+
+        Start moving to a general visitor pattern for GC traversal
+        https://bugs.webkit.org/show_bug.cgi?id=59141
+
+        This is just a rename:
+            markChildren -> visitChildren
+            markAggregate -> visitAggregate
+            markStack -> visitor
+            MarkStack -> typedef'd to SlotVisitor
+
+        * bindings/js/JSAttrCustom.cpp:
+        (WebCore::JSAttr::visitChildren):
+        * bindings/js/JSAudioConstructor.cpp:
+        (WebCore::constructAudio):
+        * bindings/js/JSCSSRuleCustom.cpp:
+        (WebCore::JSCSSRule::visitChildren):
+        * bindings/js/JSCSSStyleDeclarationCustom.cpp:
+        (WebCore::JSCSSStyleDeclaration::visitChildren):
+        * bindings/js/JSDOMBinding.cpp:
+        (WebCore::visitActiveObjectsForContext):
+        (WebCore::markDOMObjectWrapper):
+        * bindings/js/JSDOMBinding.h:
+        * bindings/js/JSDOMGlobalObject.cpp:
+        (WebCore::JSDOMGlobalObject::visitChildren):
+        * bindings/js/JSDOMGlobalObject.h:
+        * bindings/js/JSDOMImplementationCustom.cpp:
+        (WebCore::JSDOMImplementation::visitChildren):
+        * bindings/js/JSDOMWindowCustom.cpp:
+        (WebCore::JSDOMWindow::visitChildren):
+        * bindings/js/JSDOMWindowShell.cpp:
+        (WebCore::JSDOMWindowShell::visitChildren):
+        * bindings/js/JSDOMWindowShell.h:
+        * bindings/js/JSDocumentCustom.cpp:
+        (WebCore::JSDocument::visitChildren):
+        * bindings/js/JSElementCustom.cpp:
+        (WebCore::JSElement::visitChildren):
+        * bindings/js/JSEventListener.cpp:
+        (WebCore::JSEventListener::markJSFunction):
+        * bindings/js/JSEventListener.h:
+        * bindings/js/JSHTMLCanvasElementCustom.cpp:
+        (WebCore::JSHTMLCanvasElement::visitChildren):
+        * bindings/js/JSHTMLLinkElementCustom.cpp:
+        (WebCore::JSHTMLLinkElement::visitChildren):
+        * bindings/js/JSHTMLStyleElementCustom.cpp:
+        (WebCore::JSHTMLStyleElement::visitChildren):
+        * bindings/js/JSImageConstructor.cpp:
+        (WebCore::constructImage):
+        * bindings/js/JSJavaScriptAudioNodeCustom.cpp:
+        (WebCore::JSJavaScriptAudioNode::visitChildren):
+        * bindings/js/JSMessageChannelCustom.cpp:
+        (WebCore::JSMessageChannel::visitChildren):
+        * bindings/js/JSMessagePortCustom.cpp:
+        (WebCore::JSMessagePort::visitChildren):
+        * bindings/js/JSNamedNodeMapCustom.cpp:
+        (WebCore::JSNamedNodeMapOwner::isReachableFromOpaqueRoots):
+        (WebCore::JSNamedNodeMap::visitChildren):
+        * bindings/js/JSNavigatorCustom.cpp:
+        (WebCore::JSNavigator::visitChildren):
+        * bindings/js/JSNodeCustom.cpp:
+        (WebCore::isObservable):
+        (WebCore::isReachableFromDOM):
+        (WebCore::JSNodeOwner::isReachableFromOpaqueRoots):
+        (WebCore::JSNode::visitChildren):
+        * bindings/js/JSNodeCustom.h:
+        * bindings/js/JSNodeFilterCondition.cpp:
+        (WebCore::JSNodeFilterCondition::WeakOwner::isReachableFromOpaqueRoots):
+        * bindings/js/JSNodeFilterCondition.h:
+        * bindings/js/JSNodeFilterCustom.cpp:
+        (WebCore::JSNodeFilter::visitChildren):
+        * bindings/js/JSNodeIteratorCustom.cpp:
+        (WebCore::JSNodeIterator::visitChildren):
+        * bindings/js/JSNodeListCustom.cpp:
+        (WebCore::JSNodeListOwner::isReachableFromOpaqueRoots):
+        * bindings/js/JSProcessingInstructionCustom.cpp:
+        (WebCore::JSProcessingInstruction::visitChildren):
+        * bindings/js/JSSVGElementInstanceCustom.cpp:
+        (WebCore::JSSVGElementInstance::visitChildren):
+        * bindings/js/JSSharedWorkerCustom.cpp:
+        (WebCore::JSSharedWorker::visitChildren):
+        * bindings/js/JSStyleSheetCustom.cpp:
+        (WebCore::JSStyleSheet::visitChildren):
+        * bindings/js/JSTreeWalkerCustom.cpp:
+        (WebCore::JSTreeWalker::visitChildren):
+        * bindings/js/JSWebGLRenderingContextCustom.cpp:
+        (WebCore::JSWebGLRenderingContext::visitChildren):
+        * bindings/js/JSWebKitAnimationListCustom.cpp:
+        (WebCore::JSWebKitAnimationList::visitChildren):
+        * bindings/js/JSWorkerContextCustom.cpp:
+        (WebCore::JSWorkerContext::visitChildren):
+        * bindings/js/JSXMLHttpRequestCustom.cpp:
+        (WebCore::JSXMLHttpRequest::visitChildren):
+        * bindings/js/JSXMLHttpRequestUploadCustom.cpp:
+        (WebCore::JSXMLHttpRequestUpload::visitChildren):
+        * bindings/scripts/CodeGeneratorJS.pm:
+        * bridge/qt/qt_instance.cpp:
+        (JSC::Bindings::QtRuntimeObject::visitChildren):
+        (JSC::Bindings::QtInstance::markAggregate):
+        * bridge/qt/qt_instance.h:
+        * bridge/qt/qt_pixmapruntime.cpp:
+        * bridge/qt/qt_runtime.cpp:
+        (JSC::Bindings::QtRuntimeMetaMethod::visitChildren):
+        * bridge/qt/qt_runtime.h:
+        * dom/EventListener.h:
+        (WebCore::EventListener::visitJSFunction):
+        * dom/EventTarget.h:
+        (WebCore::EventTarget::visitJSEventListeners):
+        * dom/Node.h:
+        * dom/NodeFilterCondition.h:
+        (WebCore::NodeFilterCondition::visitAggregate):
+        * page/DOMWindow.h:
+        * workers/WorkerContext.h:
+
+2011-04-21  Beth Dakin  <bdakin@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        https://bugs.webkit.org/show_bug.cgi?id=59048
+        Need to track whether overlay scrollbar is currently visible and in lower-
+        righthand corner
+        -and corresponding-
+        <rdar://problem/9211232>
+
+        Whenever we start a new ScrollbarPartAnimation, check if the scrollbar is vertical 
+        and showing (alpha of 1), and if so, call setVisibleScrollerThumbRect with the 
+        knob rect, otherwise with an empty rect. ScrollAnimatorMac has a local rect to 
+        track this value so that it can avoid sending messages across the ChromeClient to 
+        the UIProcess if the rect has not changed.
+        * platform/mac/ScrollAnimatorMac.h:
+        * platform/mac/ScrollAnimatorMac.mm:
+        (-[ScrollbarPainterDelegate setUpAnimation:scrollerPainter:part:WebCore::animateAlphaTo:duration:]):
+        (WebCore::ScrollAnimatorMac::ScrollAnimatorMac):
+        (WebCore::ScrollAnimatorMac::setVisibleScrollerThumbRect):
+
+        Plumbing for the chrome client.
+        * page/ChromeClient.h:
+        (WebCore::ChromeClient::notifyScrollerThumbIsVisibleInRect):
+        * page/FrameView.cpp:
+        (WebCore::FrameView::setVisibleScrollerThumbRect):
+        * page/FrameView.h:
+        * platform/ScrollableArea.h:
+        (WebCore::ScrollableArea::setVisibleScrollerThumbRect):
+
+        New WebCoreSystemInterface function to get the knob rect.
+        * WebCore.exp.in:
+        * platform/mac/WebCoreSystemInterface.h:
+        * platform/mac/WebCoreSystemInterface.mm:
+
+2011-04-21  Nat Duca  <nduca@chromium.org>
+
+        Reviewed by James Robinson.
+
+        [chromium] Fix artefacts in compositor HUD when resizing
+        https://bugs.webkit.org/show_bug.cgi?id=58969
+
+        HUD was using the tiler program and not setting the texture
+        transform. The HUD would thus draw with a texture transform based
+        on the last tile drawn, leading sometimes to distortion.
+
+        * platform/graphics/chromium/LayerRendererChromium.cpp:
+        (WebCore::LayerRendererChromium::initializeSharedObjects):
+        (WebCore::LayerRendererChromium::cleanupSharedObjects):
+        * platform/graphics/chromium/LayerRendererChromium.h:
+        (WebCore::LayerRendererChromium::headsUpDisplayProgram):
+        * platform/graphics/chromium/cc/CCHeadsUpDisplay.cpp:
+        (WebCore::CCHeadsUpDisplay::draw):
+        * platform/graphics/chromium/cc/CCHeadsUpDisplay.h:
+
+2011-04-21  Mike Reed  <reed@google.com>
+
+        Reviewed by Kenneth Russell.
+
+        only return false if we actually in a skia-gpu accelerated canvas for isNativeFontRenderingAllowed
+        https://bugs.webkit.org/show_bug.cgi?id=59024
+
+        No new tests. The bug (and fix) depend on enabling SKIA_GPU. When that is enabled, the bug
+        shows all text w/o lcd rendering. This is a regression from a recent CL when we switch to
+        calling skia::SupportsPlatformPaint. This CL fixes that.
+        There should be no change for the default builds when SKIA_GPU is not enabled.
+
+        * platform/graphics/skia/PlatformContextSkia.cpp:
+        (WebCore::PlatformContextSkia::isNativeFontRenderingAllowed):
+
+2011-04-21  Adrienne Walker  <enne@google.com>
+
+        Reviewed by James Robinson.
+
+        [chromium] Don't upload partially drawn tiles in the compositor
+        https://bugs.webkit.org/show_bug.cgi?id=59112
+
+        Use the same set of tiles for painting as is used for updating.
+        Before, a larger set of tiles were being uploaded, causing some to
+        only be partially undirtied because they were not fully painted.
+        As tiles are clear their dirty rect after being unpainted, this caused
+        artifacts to appear when scrolling.
+
+        Unfortunately, no layout test can test this behavior yet because
+        scrolling invalidations are done differently in test shell.
+
+        * platform/graphics/chromium/ImageLayerChromium.cpp:
+        (WebCore::ImageLayerChromium::updateCompositorResources):
+        * platform/graphics/chromium/LayerTilerChromium.cpp:
+        (WebCore::LayerTilerChromium::update):
+        (WebCore::LayerTilerChromium::uploadCanvas):
+        (WebCore::LayerTilerChromium::updateFromPixels):
+        * platform/graphics/chromium/LayerTilerChromium.h:
+
+2011-04-21  Ben Taylor  <bentaylor.solx86@gmail.com>
+
+        Reviewed by Alexey Proskuryakov.
+
+        https://bugs.webkit.org/show_bug.cgi?id=58725
+
+        Fix a compile issue on Solaris 10 with Sun Studio 12,
+        ternary operators (?:) must have the same types
+
+        * loader/DocumentLoader.cpp:
+        (WebCore::DocumentLoader::popArchiveForSubframe):
+        * loader/archive/ArchiveFactory.cpp:
+        (WebCore::ArchiveFactory::create):
+        * loader/icon/IconDatabase.cpp:
+        (WebCore::IconDatabase::setIconDataForIconURL):
+        * page/animation/AnimationBase.cpp:
+        (WebCore::blendFunc):
+        * rendering/RenderLayer.cpp:
+        (WebCore::RenderLayer::updateScrollCornerStyle):
+        (WebCore::RenderLayer::updateResizerStyle):
+        * rendering/RenderScrollbar.cpp:
+        (WebCore::RenderScrollbar::updateScrollbarPart):
+        * rendering/RenderTextFragment.cpp:
+        (WebCore::RenderTextFragment::RenderTextFragment):
+
+2011-04-21  Mike Reed  <reed@google.com>
+
+        Reviewed by Kenneth Russell.
+
+        [chromium, win] Multiple failures of shadow rendering layout tests
+        https://bugs.webkit.org/show_bug.cgi?id=58772
+
+        No new tests. This CL fixes a regression in the following tests
+        fast/multicol/shadow-breaking.html
+        fast/repaint/shadow-multiple-horizontal.html
+        fast/repaint/shadow-multiple-strict-horizontal.html
+        fast/repaint/shadow-multiple-strict-vertical.html
+        fast/repaint/shadow-multiple-vertical.html
+        fast/text/shadow-translucent-fill.html
+        fast/transforms/shadows.html
+        svg/css/group-with-shadow.svg
+        svg/css/shadow-changes.svg
+        svg/css/text-shadow-multiple.xhtml
+        transitions/svg-text-shadow-transition.html
+        svg/css/composite-shadow-text.svg
+ 
+
+        * platform/graphics/skia/GraphicsContextSkia.cpp:
+        (WebCore::GraphicsContext::setPlatformShadow):
+
+2011-04-21  Geoffrey Garen  <ggaren@apple.com>
+
+        Try to fix the Qt build.
+
+        * UseJSC.cmake:
+        * WebCore.pro: Use correct file name.
+
+2011-04-21  Dirk Schulze  <krit@webkit.org>
+
+        Unreviewed Qt build fix.
+
+        SVG feDropShadow implementation of SVG Filters 1.2
+        https://bugs.webkit.org/show_bug.cgi?id=52513
+
+        * CodeGenerators.pri:
+
+2011-04-21  Adrienne Walker  <enne@google.com>
+
+        Reviewed by James Robinson.
+
+        [chromium] Clamp dirty regions on content layers to layer bounds
+        https://bugs.webkit.org/show_bug.cgi?id=58933
+
+        This prevents garbage being rendered when layers are resized and a
+        previous invalidation (now off-layer) is no longer valid.
+
+        * platform/graphics/chromium/ContentLayerChromium.cpp:
+        (WebCore::ContentLayerChromium::paintContentsIfDirty):
+
+2011-04-21  Roland Steiner  <rolandsteiner@chromium.org>
+
+        Reviewed by Kent Tamura.
+
+        Bug 59012 - Shadows should be imported along with their host nodes
+        https://bugs.webkit.org/show_bug.cgi?id=59012
+
+        Copy the shadow tree of an element (even on a shallow copy!).
+
+        Test: fast/dom/shadow/import-shadowroot.html
+
+        * dom/Element.cpp:
+        (WebCore::Element::copyNonAttributeProperties):
+        * dom/Element.h:
+
+2011-04-20  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Oliver Hunt.
+
+        Removed a use of markDOMObjectWrapper: CSS Object Model
+        https://bugs.webkit.org/show_bug.cgi?id=59057
+
+        This is 24 hours of my life I will never get back. Thank you, W3C.
+
+        * GNUmakefile.list.am:
+        * WebCore.gypi:
+        * WebCore.vcproj/WebCore.vcproj:
+        * WebCore.xcodeproj/project.pbxproj: Build!
+
+        * bindings/js/JSCSSFontFaceRuleCustom.cpp:
+        * bindings/js/JSCSSImportRuleCustom.cpp:
+        * bindings/js/JSCSSMediaRuleCustom.cpp:
+        * bindings/js/JSCSSPageRuleCustom.cpp:
+        * bindings/js/JSCSSRuleCustom.cpp:
+        (WebCore::JSCSSRuleOwner::isReachableFromOpaqueRoots):
+        (WebCore::JSCSSRuleOwner::finalize):
+        (WebCore::wrapperOwner):
+        (WebCore::wrapperContext):
+        (WebCore::JSCSSRule::markChildren):
+        * bindings/js/JSCSSRuleListCustom.cpp:
+        (WebCore::JSCSSRuleListOwner::isReachableFromOpaqueRoots):
+        (WebCore::JSCSSRuleListOwner::finalize):
+        (WebCore::wrapperOwner):
+        (WebCore::wrapperContext):
+        (WebCore::toJS):
+        * bindings/js/JSCSSStyleDeclarationCustom.cpp:
+        (WebCore::JSCSSStyleDeclarationOwner::isReachableFromOpaqueRoots):
+        (WebCore::JSCSSStyleDeclarationOwner::finalize):
+        (WebCore::wrapperOwner):
+        (WebCore::wrapperContext):
+        (WebCore::JSCSSStyleDeclaration::markChildren): Removed custom mark functions,
+        and replaced with use of the opaque roots system. This has the nice benefit
+        of allowing us to eagerly recycle far more CSS wrappers and their associated
+        DOM wrappers.
+
+        (WebCore::JSCSSStyleDeclaration::getPropertyCSSValue): Made this function
+        custom because it must maintain the sorrowful invariant that primitive
+        values can be mapped back to objects that are reachable through the DOM.
+        We maintain this invariant through an external hash table because
+        making all primitive values bigger would be a too-large memory use
+        penalty. Luckily, nobody uses this feature, so the cost of the hash table
+        is no big deal.
+
+        (WebCore::toJS): We need a custom toJS so we can specify our own WeakHandleOwner.
+
+        * bindings/js/JSCSSStyleRuleCustom.cpp: Removed custom mark, as above.
+
+        * bindings/js/JSCSSValueCustom.cpp:
+        (WebCore::cssValueRoots):
+        (WebCore::JSCSSValueOwner::isReachableFromOpaqueRoots):
+        (WebCore::JSCSSValueOwner::finalize):
+        (WebCore::wrapperOwner):
+        (WebCore::wrapperContext): Use the opaque roots system. Piggy-back on
+        the external hash table filled by JSCSSStyleDeclaration::getPropertyCSSValue.
+
+        * bindings/js/JSDocumentCustom.cpp:
+        (WebCore::JSDocument::markChildren): No need to mark our stylesheet list,
+        since all style-related objects can use our opaque root to determine
+        liveness.
+
+        * bindings/js/JSMediaListCustom.cpp: Added.
+        (WebCore::JSMediaListOwner::isReachableFromOpaqueRoots):
+        (WebCore::JSMediaListOwner::finalize):
+        (WebCore::wrapperOwner):
+        (WebCore::wrapperContext):
+        (WebCore::toJS): Use the opaque roots system.
+
+        * bindings/js/JSNodeCustom.h:
+        (WebCore::root): Added helpers for computing style-related roots.
+
+        * bindings/js/JSStyleSheetCustom.cpp:
+        (WebCore::JSStyleSheetOwner::isReachableFromOpaqueRoots):
+        (WebCore::JSStyleSheetOwner::finalize):
+        (WebCore::wrapperOwner):
+        (WebCore::wrapperContext):
+        (WebCore::JSStyleSheet::markChildren): Use the opaque roots system instead
+        of direct marking.
+        
+        * bindings/js/JSStyleSheetListCustom.cpp:
+        (WebCore::JSStyleSheetListOwner::isReachableFromOpaqueRoots):
+        (WebCore::JSStyleSheetListOwner::finalize):
+        (WebCore::wrapperOwner):
+        (WebCore::wrapperContext):
+        (WebCore::toJS): Ditto.
+
+        * bindings/js/JSWebKitCSSKeyframeRuleCustom.cpp:
+        * bindings/js/JSWebKitCSSKeyframesRuleCustom.cpp:
+        * css/CSSFontFaceRule.idl:
+        * css/CSSImportRule.idl: No more custom mark, since we use the opaque
+        roots system instead.
+
+        * css/CSSMediaRule.cpp:
+        (WebCore::CSSMediaRule::CSSMediaRule): Fixed a bug where a media rule
+        would incorrectly have no parent, since this got in the way of correctly
+        computing the media rule's root.
+
+        * css/CSSMediaRule.idl:
+        * css/CSSPageRule.idl:
+        * css/CSSRuleList.idl:
+        * css/CSSStyleDeclaration.idl:
+        * css/CSSStyleRule.idl:
+        * css/MediaList.idl: Match behavior changes above.
+
+        * css/StyleBase.cpp:
+        (WebCore::StyleBase::node): Helper function for computing roots of the
+        style system. This object model is pretty weird and not very well factored,
+        but I'm pretty sure this covers all the relevant cases.
+
+        * css/StyleBase.h:
+        * css/StyleSheetList.idl:
+        * css/WebKitCSSKeyframeRule.idl:
+        * css/WebKitCSSKeyframesRule.idl: Updated to match the behavior changes above.
+
+2011-04-21  Dirk Schulze  <krit@webkit.org>
+
+        Reviewed by Nikolas Zimmermann.
+
+        SVG feDropShadow implementation of SVG Filters 1.2
+        https://bugs.webkit.org/show_bug.cgi?id=52513
+
+        This is the implementation of feDropShadow, a shorthand filter and a combination of feGaussianBlur,
+        feOffset, feFlood and feComposite to create a drop shadow of an input effect.
+        Creating this new filter effect makes it possible to optimize the often used workflow. ShadowBlur, with its
+        fast blurring algorithm, is used to blur the shadow and composite operators are responsible for combining the
+        source with different colored shadows.
+        Shadow color and opacity can be set with the properties flood-color and flood-opacity.
+
+        Tests: svg/dynamic-updates/SVGFEDropShadowElement-dom-dx-attr.html
+               svg/dynamic-updates/SVGFEDropShadowElement-dom-dy-attr.html
+               svg/dynamic-updates/SVGFEDropShadowElement-dom-in-attr.html
+               svg/dynamic-updates/SVGFEDropShadowElement-dom-shadow-color-attr.html
+               svg/dynamic-updates/SVGFEDropShadowElement-dom-shadow-opacity-attr.html
+               svg/dynamic-updates/SVGFEDropShadowElement-dom-stdDeviation-attr.html
+               svg/dynamic-updates/SVGFEDropShadowElement-svgdom-dx-prop.html
+               svg/dynamic-updates/SVGFEDropShadowElement-svgdom-dy-prop.html
+               svg/dynamic-updates/SVGFEDropShadowElement-svgdom-in-prop.html
+               svg/dynamic-updates/SVGFEDropShadowElement-svgdom-shadow-color-prop.html
+               svg/dynamic-updates/SVGFEDropShadowElement-svgdom-shadow-opacity-prop.html
+               svg/dynamic-updates/SVGFEDropShadowElement-svgdom-stdDeviation-prop.html
+               svg/filters/feDropShadow.svg
+
+        * Android.mk:
+        * CMakeLists.txt:
+        * DerivedSources.cpp:
+        * DerivedSources.make:
+        * GNUmakefile.list.am:
+        * WebCore.exp.in:
+        * WebCore.gypi:
+        * WebCore.pro:
+        * WebCore.vcproj/WebCore.vcproj:
+        * WebCore.xcodeproj/project.pbxproj:
+        * bindings/objc/DOM.mm:
+        (WebCore::createElementClassMap):
+        * bindings/objc/DOMSVG.h:
+        * page/DOMWindow.idl:
+        * platform/graphics/ShadowBlur.cpp: Added missing copyright after r84410.
+        * platform/graphics/ShadowBlur.h: Made blurLayerImage public.
+        * platform/graphics/filters/FEDropShadow.cpp: Added.
+        (WebCore::FEDropShadow::FEDropShadow):
+        (WebCore::FEDropShadow::create):
+        (WebCore::FEDropShadow::determineAbsolutePaintRect):
+        (WebCore::FEDropShadow::apply):
+        (WebCore::FEDropShadow::dump):
+        (WebCore::FEDropShadow::externalRepresentation):
+        * platform/graphics/filters/FEDropShadow.h: Added.
+        (WebCore::FEDropShadow::stdDeviationX):
+        (WebCore::FEDropShadow::setStdDeviationX):
+        (WebCore::FEDropShadow::stdDeviationY):
+        (WebCore::FEDropShadow::setStdDeviationY):
+        (WebCore::FEDropShadow::dx):
+        (WebCore::FEDropShadow::setDx):
+        (WebCore::FEDropShadow::dy):
+        (WebCore::FEDropShadow::setDy):
+        (WebCore::FEDropShadow::shadowColor):
+        (WebCore::FEDropShadow::setShadowColor):
+        (WebCore::FEDropShadow::shadowOpacity):
+        (WebCore::FEDropShadow::setShadowOpacity):
+        * platform/graphics/filters/FEGaussianBlur.cpp:
+        (WebCore::FEGaussianBlur::calculateKernelSize): Make kernel calculations accessible for feDropShadow.
+        * platform/graphics/filters/FEGaussianBlur.h:
+        * svg/SVGAllInOne.cpp:
+        * svg/SVGFEDropShadowElement.cpp: Added.
+        (WebCore::SVGFEDropShadowElement::SVGFEDropShadowElement):
+        (WebCore::SVGFEDropShadowElement::create):
+        (WebCore::SVGFEDropShadowElement::stdDeviationXIdentifier):
+        (WebCore::SVGFEDropShadowElement::stdDeviationYIdentifier):
+        (WebCore::SVGFEDropShadowElement::setStdDeviation):
+        (WebCore::SVGFEDropShadowElement::parseMappedAttribute):
+        (WebCore::SVGFEDropShadowElement::svgAttributeChanged):
+        (WebCore::SVGFEDropShadowElement::synchronizeProperty):
+        (WebCore::SVGFEDropShadowElement::build):
+        * svg/SVGFEDropShadowElement.h: Added.
+        * svg/SVGFEDropShadowElement.idl: Added.
+        * svg/svgtags.in:
+
+2011-04-21  Roland Steiner  <rolandsteiner@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        Bug 58704 - Decide on node type for ShadowRoot
+        https://bugs.webkit.org/show_bug.cgi?id=58704
+
+        Add a new node type SHADOW_ROOT_NODE.
+        Adapt all calling sites of nodeType(). 
+
+        Test: fast/dom/shadow/nodetype.html
+
+        * bindings/js/JSNodeCustom.cpp:
+        (WebCore::createWrapperInline):
+        * bindings/objc/DOM.mm:
+        (kitClass):
+        * bindings/v8/custom/V8NodeCustom.cpp:
+        (WebCore::toV8Slow):
+        * dom/Document.cpp:
+        (WebCore::Document::importNode):
+        (WebCore::Document::childTypeAllowed):
+        (WebCore::Document::canReplaceChild):
+        * dom/Node.cpp:
+        (WebCore::Node::dumpStatistics):
+        (WebCore::Node::isDefaultNamespace):
+        (WebCore::Node::lookupPrefix):
+        (WebCore::Node::lookupNamespaceURI):
+        (WebCore::appendTextContent):
+        (WebCore::Node::setTextContent):
+        * dom/Node.h:
+        * dom/Range.cpp:
+        (WebCore::lengthOfContentsInNode):
+        (WebCore::Range::processContentsBetweenOffsets):
+        (WebCore::Range::insertNode):
+        (WebCore::Range::checkNodeWOffset):
+        (WebCore::Range::checkNodeBA):
+        (WebCore::Range::selectNode):
+        (WebCore::Range::selectNodeContents):
+        (WebCore::Range::surroundContents):
+        * dom/ShadowRoot.cpp:
+        (WebCore::ShadowRoot::nodeType):
+        * dom/Traversal.cpp:
+        (WebCore::Traversal::acceptNode):
+        * editing/MarkupAccumulator.cpp:
+        (WebCore::MarkupAccumulator::appendStartMarkup):
+        * html/parser/HTMLElementStack.cpp:
+        (WebCore::HTMLNames::isRootNode):
+        (WebCore::HTMLElementStack::pushRootNode):
+        * html/parser/HTMLElementStack.h:
+        (WebCore::isInHTMLNamespace):
+        * xml/XPathUtil.cpp:
+        (WebCore::XPath::isValidContextNode):
+
 2011-04-20  Dimitri Glazkov  <dglazkov@chromium.org>
 
         Reviewed by Kent Tamura.

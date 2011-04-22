@@ -1,3 +1,394 @@
+2011-04-21  Beth Dakin  <bdakin@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        https://bugs.webkit.org/show_bug.cgi?id=57898
+        REGRESSION (r82185): Scroll position not restored on navigation back to a page in 
+        the page cache
+        -and corresponding-
+        <rdar://problem/9226652>
+
+        * fast/loader/scroll-position-restored-on-back-non-cached-expected.txt: Added.
+        * fast/loader/scroll-position-restored-on-back-non-cached.html: Added.
+
+2011-04-21  Chris Fleizach  <cfleizach@apple.com>
+
+        Reviewed by Beth Dakin.
+
+        WebKit is erroneously modifying the DOM; adding 'aria-selected' to tables
+        https://bugs.webkit.org/show_bug.cgi?id=59140
+
+        * accessibility/aria-combobox.html:
+        * platform/mac/accessibility/aria-combobox-expected.txt:
+        * platform/mac/accessibility/aria-slider-value-change-expected.txt:
+        * platform/mac/accessibility/aria-slider-value-change.html:
+
+2011-04-21  Dirk Pranke  <dpranke@chromium.org>
+
+        Unreviewed, expectations change - new baselines needed as
+        a result of r84589.
+
+        * platform/chromium/test_expectations.txt:
+
+2011-04-21  Dirk Pranke  <dpranke@chromium.org>
+
+        Unreviewed, expectations change. Triage failure for
+        media/video-zoom.html on chromium gpu bots.
+
+        * platform/chromium/test_expectations.txt:
+
+2011-04-21  Dirk Pranke  <dpranke@chromium.org>
+
+        Unreviewed, expectations change. Suppress failures on chromium
+        win/linux from bug 59166.
+
+        * platform/chromium/test_expectations.txt:
+
+2011-04-21  Dimitri Glazkov  <dglazkov@chromium.org>
+
+        Reviewed by Adele Peterson.
+
+        REGRESSION (r83386): Typing in WSJ.com search field doesn't clear placeholder text
+        https://bugs.webkit.org/show_bug.cgi?id=59053
+
+        * fast/events/shadow-boundary-crossing-expected.txt: Updated expected results.
+        * fast/events/shadow-boundary-crossing.html: Added new sub-test.
+
+2011-04-21  Dirk Pranke  <dpranke@chromium.org>
+
+        Unreviwed, expecations change. Pick up chromium-win baselines
+        for r84522.
+
+        * platform/chromium-win/svg/dynamic-updates/SVGFEDropShadowElement-dom-dx-attr-expected.png: Added.
+        * platform/chromium-win/svg/dynamic-updates/SVGFEDropShadowElement-dom-dy-attr-expected.png: Added.
+        * platform/chromium-win/svg/dynamic-updates/SVGFEDropShadowElement-dom-in-attr-expected.png: Added.
+        * platform/chromium-win/svg/dynamic-updates/SVGFEDropShadowElement-dom-shadow-color-attr-expected.png: Added.
+        * platform/chromium-win/svg/dynamic-updates/SVGFEDropShadowElement-dom-shadow-opacity-attr-expected.png: Added.
+        * platform/chromium-win/svg/dynamic-updates/SVGFEDropShadowElement-dom-stdDeviation-attr-expected.png: Added.
+        * platform/chromium-win/svg/dynamic-updates/SVGFEDropShadowElement-svgdom-dx-prop-expected.png: Added.
+        * platform/chromium-win/svg/dynamic-updates/SVGFEDropShadowElement-svgdom-dy-prop-expected.png: Added.
+        * platform/chromium-win/svg/dynamic-updates/SVGFEDropShadowElement-svgdom-in-prop-expected.png: Added.
+        * platform/chromium-win/svg/dynamic-updates/SVGFEDropShadowElement-svgdom-shadow-color-prop-expected.png: Added.
+        * platform/chromium-win/svg/dynamic-updates/SVGFEDropShadowElement-svgdom-shadow-opacity-prop-expected.png: Added.
+        * platform/chromium-win/svg/dynamic-updates/SVGFEDropShadowElement-svgdom-stdDeviation-prop-expected.png: Added.
+        * platform/chromium-win/svg/filters/feDropShadow-expected.png: Added.
+
+2011-04-21  Dirk Pranke  <dpranke@chromium.org>
+
+        Unreviewed, expectations change.
+
+        Suppress failures possibly caused by bug 59158 on chromium win/linux:
+        fast/canvas/canvas-stroke{Path,Rect}-alpha-shadow.html = TEXT
+
+        * platform/chromium/test_expectations.txt:
+
+2011-04-21  Ojan Vafai  <ojan@chromium.org>
+
+        Reviewed by Tony Chang.
+
+        move json_results.html over to LayoutTests/fast/harness
+        https://bugs.webkit.org/show_bug.cgi?id=59154
+
+        * fast/harness/resources/results-test.js:
+        * fast/harness/results-expected.txt: Added.
+        * fast/harness/results.html: Added.
+
+2011-04-21  Dirk Pranke  <dpranke@chromium.org>
+
+        Update baselines to accomodate the change in r84506. I wonder
+        how much having platform/mac in the search path hurts
+        chromium-win/-linux.
+
+        * platform/chromium-win/canvas/philip/tests/toDataURL.jpeg.alpha-expected.txt: Added.
+
+2011-04-21  Matthew Delaney  <mdelaney@apple.com>
+
+        Reviewed by Simon Fraser.
+
+        Move canvas test set-colors.html expected results out of platform/mac-leopard and into platform/mac
+        This test expected result pertains to all of mac, not just leopard.
+        https://bugs.webkit.org/show_bug.cgi?id=59139
+
+        * platform/mac-leopard/fast/canvas/set-colors-expected.txt: Removed.
+        * platform/mac/fast/canvas/set-colors-expected.txt: Copied from LayoutTests/platform/mac-leopard/fast/canvas/set-colors-expected.txt.
+
+2011-04-21  Tony Chang  <tony@chromium.org>
+
+        Embed checksums in more png files.  Not sure how these were missed earlier.
+
+        * animations/missing-values-first-keyframe-expected.png:
+        * animations/missing-values-last-keyframe-expected.png:
+        * animations/opacity-transform-animation-expected.png:
+        * animations/suspend-transform-animation-expected.png:
+        * compositing/backface-visibility-expected.png:
+        * compositing/checkerboard-expected.png:
+        * compositing/geometry/ancestor-overflow-change-expected.png:
+        * compositing/geometry/tall-page-composited-expected.png:
+        * compositing/iframes/composited-iframe-scroll-expected.png:
+        * compositing/iframes/iframe-content-flipping-expected.png:
+        * compositing/iframes/nested-iframe-scrolling-expected.png:
+        * compositing/images/direct-pdf-image-expected.png:
+        * compositing/images/direct-svg-image-expected.png:
+        * compositing/overflow/zero-size-overflow-expected.png:
+        * compositing/reflections/backface-hidden-reflection-expected.png:
+        * compositing/reflections/remove-add-reflection-expected.png:
+        * compositing/tiling/constrained-layer-size-expected.png:
+        * compositing/z-order/negative-z-index-expected.png:
+        * transforms/3d/general/cssmatrix-3d-zoom-expected.png:
+        * transforms/3d/general/matrix-with-zoom-3d-expected.png:
+        * transitions/suspend-transform-transition-expected.png:
+
+2011-04-21  Dirk Pranke  <dpranke@chromium.org>
+
+        Unreviewed, expectations change - update chromium SVG baselines
+        after r84522.
+
+        * platform/chromium/fast/dom/prototype-inheritance-expected.txt:
+
+2011-04-21  Dirk Pranke  <dpranke@chromium.org>
+
+        Unreviewed, expectations change - update chromium SVG baselines
+        after r84522.
+
+        * platform/chromium-linux/svg/dynamic-updates/SVGFEDropShadowElement-dom-dx-attr-expected.png: Added.
+        * platform/chromium-linux/svg/dynamic-updates/SVGFEDropShadowElement-dom-dy-attr-expected.png: Added.
+        * platform/chromium-linux/svg/dynamic-updates/SVGFEDropShadowElement-dom-in-attr-expected.png: Added.
+        * platform/chromium-linux/svg/dynamic-updates/SVGFEDropShadowElement-dom-shadow-color-attr-expected.png: Added.
+        * platform/chromium-linux/svg/dynamic-updates/SVGFEDropShadowElement-dom-shadow-opacity-attr-expected.png: Added.
+        * platform/chromium-linux/svg/dynamic-updates/SVGFEDropShadowElement-dom-stdDeviation-attr-expected.png: Added.
+        * platform/chromium-linux/svg/dynamic-updates/SVGFEDropShadowElement-svgdom-dx-prop-expected.png: Added.
+        * platform/chromium-linux/svg/dynamic-updates/SVGFEDropShadowElement-svgdom-dy-prop-expected.png: Added.
+        * platform/chromium-linux/svg/dynamic-updates/SVGFEDropShadowElement-svgdom-in-prop-expected.png: Added.
+        * platform/chromium-linux/svg/dynamic-updates/SVGFEDropShadowElement-svgdom-shadow-color-prop-expected.png: Added.
+        * platform/chromium-linux/svg/dynamic-updates/SVGFEDropShadowElement-svgdom-shadow-opacity-prop-expected.png: Added.
+        * platform/chromium-linux/svg/dynamic-updates/SVGFEDropShadowElement-svgdom-stdDeviation-prop-expected.png: Added.
+        * platform/chromium-linux/svg/filters/feDropShadow-expected.png: Added.
+        * platform/chromium-mac/svg/dynamic-updates/SVGFEDropShadowElement-dom-shadow-color-attr-expected.png: Added.
+        * platform/chromium-mac/svg/dynamic-updates/SVGFEDropShadowElement-dom-shadow-opacity-attr-expected.png: Added.
+        * platform/chromium-mac/svg/dynamic-updates/SVGFEDropShadowElement-svgdom-shadow-color-prop-expected.png: Added.
+        * platform/chromium-mac/svg/dynamic-updates/SVGFEDropShadowElement-svgdom-shadow-opacity-prop-expected.png: Added.
+        * platform/chromium-mac/svg/filters/feDropShadow-expected.png: Added.
+
+2011-04-21  Geoffrey Garen  <ggaren@apple.com>
+
+        Reviewed by Sam Weinig.
+
+        Fixed a failure seen in fast/dom/prototype-inheritance-2.html due to
+        wrong global object use.
+
+        * fast/dom/prototype-inheritance-2-expected.txt: Expect success!
+
+2011-04-21  Dirk Pranke  <dpranke@chromium.org>
+
+        Unreviewed, expectations change - flaky tests.
+
+        * platform/chromium/test_expectations.txt:
+
+2011-04-21  Adam Barth  <abarth@webkit.org>
+
+        Update test results to show that we're using ogv.  I would have
+        preferred to make this test independent of which video codec we have,
+        but I didn't see a way to do that.
+
+        * platform/chromium/http/tests/security/contentSecurityPolicy/media-src-blocked-expected.txt: Added.
+        * platform/chromium/media/csp-blocks-video-expected.txt: Added.
+        * platform/chromium/test_expectations.txt:
+
+2011-04-21  Tony Chang  <tony@chromium.org>
+
+        Unreviewed, deleting .checksum files in platform/chromium*
+
+2011-04-21  Tony Chang  <tony@chromium.org>
+
+        Unreviewed, embedding checksums in png files not in LayoutTests/platform.
+
+2011-04-21  Dirk Schulze  <krit@webkit.org>
+
+        Uneviewed rebaseline of win.
+
+        SVG feDropShadow implementation of SVG Filters 1.2
+        https://bugs.webkit.org/show_bug.cgi?id=52513
+
+        * platform/win/fast/dom/Window/window-property-descriptors-expected.txt:
+        * platform/win/fast/dom/prototype-inheritance-2-expected.txt:
+        * platform/win/fast/dom/prototype-inheritance-expected.txt:
+        * platform/win/fast/js/global-constructors-expected.txt:
+
+2011-04-21  Martin Robinson  <mrobinson@igalia.com>
+
+        [GTK] DRT: implement eventSender.scalePageBy
+        https://bugs.webkit.org/show_bug.cgi?id=59082
+
+        Rolling out r84507 since it broke many GTK+ tests.
+
+        * platform/gtk/Skipped:
+        * platform/gtk/fast/repaint/scale-page-shrink-expected.checksum: Removed.
+        * platform/gtk/fast/repaint/scale-page-shrink-expected.png: Removed.
+        * platform/gtk/fast/repaint/scale-page-shrink-expected.txt: Removed.
+
+2011-04-21  Dirk Schulze  <krit@webkit.org>
+
+        Unreviewed rebaseline.
+
+        SVG feDropShadow implementation of SVG Filters 1.2
+        https://bugs.webkit.org/show_bug.cgi?id=52513
+
+        * fast/dom/Window/window-properties-expected.txt:
+        * fast/dom/Window/window-property-descriptors-expected.txt:
+        * fast/dom/prototype-inheritance-2-expected.txt:
+        * fast/dom/prototype-inheritance-expected.txt:
+        * fast/js/global-constructors-expected.txt:
+
+2011-04-21  Csaba Osztrogonác  <ossy@webkit.org>
+
+        [Qt] Unreviewed. Update expected files after r84522.
+
+        * platform/qt/fast/dom/Window/window-properties-expected.txt:
+        * platform/qt/fast/dom/Window/window-property-descriptors-expected.txt:
+        * platform/qt/fast/dom/prototype-inheritance-expected.txt:
+        * platform/qt/fast/js/global-constructors-expected.txt:
+
+2011-04-21  Roland Steiner  <rolandsteiner@chromium.org>
+
+        Unreviewed: skip tests on Windows.
+
+        fast/dom/shadow/layout-tests-can-access-shadow.html is failing on Windows
+        https://bugs.webkit.org/show_bug.cgi?id=59081
+
+        Skip all tests in fast/dom/shadow on Windows.
+        (shadowRoot accessor is not implemented on Windows yet)
+
+        * platform/win/Skipped:
+
+2011-04-21  Dirk Pranke  <dpranke@chromium.org>
+
+        Unreviewed, expectations change.
+
+        Roll in downstream failures as of Chromium r82532.
+
+        * platform/chromium/test_expectations.txt:
+
+2011-04-21  Roland Steiner  <rolandsteiner@chromium.org>
+
+        Reviewed by Kent Tamura.
+
+        Bug 59012 - Shadows should be imported along with their host nodes
+        https://bugs.webkit.org/show_bug.cgi?id=59012
+
+        Verify that the shadow of a bound element is imported along with the element.
+
+        * fast/dom/shadow/import-shadowroot-expected.txt: Added.
+        * fast/dom/shadow/import-shadowroot.html: Added.
+
+2011-04-21  Dirk Schulze  <krit@webkit.org>
+
+        Reviewed by Nikolas Zimmermann.
+
+        SVG feDropShadow implementation of SVG Filters 1.2
+        https://bugs.webkit.org/show_bug.cgi?id=52513
+
+        Added dynamic update tests for FEDropShadow as well as a basic pixel test.
+
+        * platform/mac/svg/dynamic-updates/SVGFEDropShadowElement-dom-dx-attr-expected.checksum: Added.
+        * platform/mac/svg/dynamic-updates/SVGFEDropShadowElement-dom-dx-attr-expected.png: Added.
+        * platform/mac/svg/dynamic-updates/SVGFEDropShadowElement-dom-dy-attr-expected.checksum: Added.
+        * platform/mac/svg/dynamic-updates/SVGFEDropShadowElement-dom-dy-attr-expected.png: Added.
+        * platform/mac/svg/dynamic-updates/SVGFEDropShadowElement-dom-in-attr-expected.checksum: Added.
+        * platform/mac/svg/dynamic-updates/SVGFEDropShadowElement-dom-in-attr-expected.png: Added.
+        * platform/mac/svg/dynamic-updates/SVGFEDropShadowElement-dom-shadow-color-attr-expected.checksum: Added.
+        * platform/mac/svg/dynamic-updates/SVGFEDropShadowElement-dom-shadow-color-attr-expected.png: Added.
+        * platform/mac/svg/dynamic-updates/SVGFEDropShadowElement-dom-shadow-opacity-attr-expected.checksum: Added.
+        * platform/mac/svg/dynamic-updates/SVGFEDropShadowElement-dom-shadow-opacity-attr-expected.png: Added.
+        * platform/mac/svg/dynamic-updates/SVGFEDropShadowElement-dom-stdDeviation-attr-expected.checksum: Added.
+        * platform/mac/svg/dynamic-updates/SVGFEDropShadowElement-dom-stdDeviation-attr-expected.png: Added.
+        * platform/mac/svg/dynamic-updates/SVGFEDropShadowElement-svgdom-dx-prop-expected.checksum: Added.
+        * platform/mac/svg/dynamic-updates/SVGFEDropShadowElement-svgdom-dx-prop-expected.png: Added.
+        * platform/mac/svg/dynamic-updates/SVGFEDropShadowElement-svgdom-dy-prop-expected.checksum: Added.
+        * platform/mac/svg/dynamic-updates/SVGFEDropShadowElement-svgdom-dy-prop-expected.png: Added.
+        * platform/mac/svg/dynamic-updates/SVGFEDropShadowElement-svgdom-in-prop-expected.checksum: Added.
+        * platform/mac/svg/dynamic-updates/SVGFEDropShadowElement-svgdom-in-prop-expected.png: Added.
+        * platform/mac/svg/dynamic-updates/SVGFEDropShadowElement-svgdom-shadow-color-prop-expected.checksum: Added.
+        * platform/mac/svg/dynamic-updates/SVGFEDropShadowElement-svgdom-shadow-color-prop-expected.png: Added.
+        * platform/mac/svg/dynamic-updates/SVGFEDropShadowElement-svgdom-shadow-opacity-prop-expected.checksum: Added.
+        * platform/mac/svg/dynamic-updates/SVGFEDropShadowElement-svgdom-shadow-opacity-prop-expected.png: Added.
+        * platform/mac/svg/dynamic-updates/SVGFEDropShadowElement-svgdom-stdDeviation-prop-expected.checksum: Added.
+        * platform/mac/svg/dynamic-updates/SVGFEDropShadowElement-svgdom-stdDeviation-prop-expected.png: Added.
+        * platform/mac/svg/filters/feDropShadow-expected.checksum: Added.
+        * platform/mac/svg/filters/feDropShadow-expected.png: Added.
+        * platform/mac/svg/filters/feDropShadow-expected.txt: Added.
+        * svg/dynamic-updates/SVGFEDropShadowElement-dom-dx-attr-expected.txt: Added.
+        * svg/dynamic-updates/SVGFEDropShadowElement-dom-dx-attr.html: Added.
+        * svg/dynamic-updates/SVGFEDropShadowElement-dom-dy-attr-expected.txt: Added.
+        * svg/dynamic-updates/SVGFEDropShadowElement-dom-dy-attr.html: Added.
+        * svg/dynamic-updates/SVGFEDropShadowElement-dom-in-attr-expected.txt: Added.
+        * svg/dynamic-updates/SVGFEDropShadowElement-dom-in-attr.html: Added.
+        * svg/dynamic-updates/SVGFEDropShadowElement-dom-shadow-color-attr-expected.txt: Added.
+        * svg/dynamic-updates/SVGFEDropShadowElement-dom-shadow-color-attr.html: Added.
+        * svg/dynamic-updates/SVGFEDropShadowElement-dom-shadow-opacity-attr-expected.txt: Added.
+        * svg/dynamic-updates/SVGFEDropShadowElement-dom-shadow-opacity-attr.html: Added.
+        * svg/dynamic-updates/SVGFEDropShadowElement-dom-stdDeviation-attr-expected.txt: Added.
+        * svg/dynamic-updates/SVGFEDropShadowElement-dom-stdDeviation-attr.html: Added.
+        * svg/dynamic-updates/SVGFEDropShadowElement-svgdom-dx-prop-expected.txt: Added.
+        * svg/dynamic-updates/SVGFEDropShadowElement-svgdom-dx-prop.html: Added.
+        * svg/dynamic-updates/SVGFEDropShadowElement-svgdom-dy-prop-expected.txt: Added.
+        * svg/dynamic-updates/SVGFEDropShadowElement-svgdom-dy-prop.html: Added.
+        * svg/dynamic-updates/SVGFEDropShadowElement-svgdom-in-prop-expected.txt: Added.
+        * svg/dynamic-updates/SVGFEDropShadowElement-svgdom-in-prop.html: Added.
+        * svg/dynamic-updates/SVGFEDropShadowElement-svgdom-shadow-color-prop-expected.txt: Added.
+        * svg/dynamic-updates/SVGFEDropShadowElement-svgdom-shadow-color-prop.html: Added.
+        * svg/dynamic-updates/SVGFEDropShadowElement-svgdom-shadow-opacity-prop-expected.txt: Added.
+        * svg/dynamic-updates/SVGFEDropShadowElement-svgdom-shadow-opacity-prop.html: Added.
+        * svg/dynamic-updates/SVGFEDropShadowElement-svgdom-stdDeviation-prop-expected.txt: Added.
+        * svg/dynamic-updates/SVGFEDropShadowElement-svgdom-stdDeviation-prop.html: Added.
+        * svg/dynamic-updates/SVGFETurbulenceElement-svgdom-numOctaves-prop.html:
+        * svg/dynamic-updates/SVGFETurbulenceElement-svgdom-seed-prop.html:
+        * svg/dynamic-updates/SVGFETurbulenceElement-svgdom-stitchTiles-prop.html:
+        * svg/dynamic-updates/SVGFETurbulenceElement-svgdom-type-prop.html:
+        * svg/dynamic-updates/script-tests/SVGFEDropShadowElement-dom-dx-attr.js: Added.
+        (executeTest):
+        * svg/dynamic-updates/script-tests/SVGFEDropShadowElement-dom-dy-attr.js: Added.
+        (executeTest):
+        * svg/dynamic-updates/script-tests/SVGFEDropShadowElement-dom-in-attr.js: Added.
+        (executeTest):
+        * svg/dynamic-updates/script-tests/SVGFEDropShadowElement-dom-shadow-color-attr.js: Added.
+        (executeTest):
+        * svg/dynamic-updates/script-tests/SVGFEDropShadowElement-dom-shadow-opacity-attr.js: Added.
+        (executeTest):
+        * svg/dynamic-updates/script-tests/SVGFEDropShadowElement-dom-stdDeviation-attr.js: Added.
+        (executeTest):
+        * svg/dynamic-updates/script-tests/SVGFEDropShadowElement-svgdom-dx-prop.js: Added.
+        (executeTest):
+        * svg/dynamic-updates/script-tests/SVGFEDropShadowElement-svgdom-dy-prop.js: Added.
+        (executeTest):
+        * svg/dynamic-updates/script-tests/SVGFEDropShadowElement-svgdom-in-prop.js: Added.
+        (executeTest):
+        * svg/dynamic-updates/script-tests/SVGFEDropShadowElement-svgdom-shadow-color-prop.js: Added.
+        (executeTest):
+        * svg/dynamic-updates/script-tests/SVGFEDropShadowElement-svgdom-shadow-opacity-prop.js: Added.
+        (executeTest):
+        * svg/dynamic-updates/script-tests/SVGFEDropShadowElement-svgdom-stdDeviation-prop.js: Added.
+        (executeTest):
+        * svg/filters/feDropShadow.svg: Added.
+
+2011-04-21  MORITA Hajime  <morrita@google.com>
+
+        Unreviewed expectations update following r84511.
+
+        * platform/gtk/fast/html/details-open2-expected.txt:
+        * platform/qt/fast/html/details-open2-expected.txt:
+
+2011-04-20  Roland Steiner  <rolandsteiner@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        Bug 58704 - Decide on node type for ShadowRoot
+        https://bugs.webkit.org/show_bug.cgi?id=58704
+
+        Test node types of shadow host, shadow root and first shadow child.
+
+        * fast/dom/shadow/nodetype-expected.txt: Added.
+        * fast/dom/shadow/nodetype.html: Added.
+
 2011-04-20  Dimitri Glazkov  <dglazkov@chromium.org>
 
         Reviewed by Kent Tamura.
