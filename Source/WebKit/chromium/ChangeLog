@@ -1,3 +1,73 @@
+2011-04-20  Yuzhu Shen  <yzshen@chromium.org>
+
+        Reviewed by Tony Chang.
+
+        [chromium] linux chromium doesn't set click count for mouse up events.
+        https://bugs.webkit.org/show_bug.cgi?id=58921
+
+        The reason why we need such a fix is that the Pepper API passes this information to plugins,
+        and some consumers (e.g., Flash) need it to detect double-clicks.
+
+        * src/gtk/WebInputEventFactory.cpp: set click count for mouse up events.
+        * tests/WebInputEventFactoryTestGtk.cpp: added test case MouseUpClickCount.
+2011-04-20  Evan Martin  <evan@chromium.org>
+
+        Reviewed by Tony Chang.
+
+        [chromium] expose title text direction on WebDataSource
+        https://bugs.webkit.org/show_bug.cgi?id=59010
+
+        * public/WebDataSource.h:
+        * src/WebDataSourceImpl.cpp:
+        (WebKit::WebDataSourceImpl::pageTitle):
+        (WebKit::WebDataSourceImpl::pageTitleDirection):
+        * src/WebDataSourceImpl.h:
+
+2011-04-20  Pavel Feldman  <pfeldman@google.com>
+
+        Reviewed by Yury Semikhatsky.
+
+        Web Inspector: add saveAs into the InspectorFrontendHost binding.
+        https://bugs.webkit.org/show_bug.cgi?id=58979
+
+        * public/WebDevToolsFrontendClient.h:
+        (WebKit::WebDevToolsFrontendClient::saveAs):
+        * src/InspectorFrontendClientImpl.cpp:
+        (WebKit::InspectorFrontendClientImpl::saveAs):
+        * src/InspectorFrontendClientImpl.h:
+        * src/js/DevTools.js:
+
+2011-04-19  Naoki Takano  <takano.naoki@gmail.com>
+
+        Reviewed by Kent Tamura.
+
+        [Chromium]UI polishes and tweaks to Autofill dropdown menu.
+        https://bugs.webkit.org/show_bug.cgi?id=58505
+
+        * src/AutoFillPopupMenuClient.cpp:
+        (WebKit::AutoFillPopupMenuClient::initialize): Set AutofillPopup for menuStyle.
+
+2011-04-19  Dirk Pranke  <dpranke@chromium.org>
+
+        Unreviewed, attempting build fix.
+
+        Disable leveldb to work around
+        http://code.google.com/p/leveldb/issues/detail?id=1.
+
+        * features.gypi:
+
+2011-04-19  Dominic Cooney  <dominicc@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        Check the type of the wrapper when unwrapping NPObjects to native
+        Ranges and Elements
+        https://bugs.webkit.org/show_bug.cgi?id=58957
+
+        * src/WebBindings.cpp:
+        (WebKit::getRangeImpl): check HasInstance
+        (WebKit::getElementImpl): check HasInstance
+
 2011-04-19  Evan Martin  <evan@chromium.org>
 
         Reviewed by Darin Fisher.
