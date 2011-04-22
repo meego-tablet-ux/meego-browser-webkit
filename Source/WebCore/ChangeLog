@@ -1,3 +1,825 @@
+2011-04-20  Dimitri Glazkov  <dglazkov@chromium.org>
+
+        Reviewed by Kent Tamura.
+
+        REGRESSION(r82376): Clicking on a label, associated with a disabled input element changes state of the element.
+        https://bugs.webkit.org/show_bug.cgi?id=59037
+
+        Test: fast/events/simulated-click-disabled.html
+
+        * dom/EventDispatcher.cpp:
+        (WebCore::EventDispatcher::dispatchSimulatedClick): Added check for disabled element.
+
+2011-04-20  Eric Seidel  <eric@webkit.org>
+
+        Reviewed by Ryosuke Niwa.
+
+        Split bidiFirst into two functions
+        https://bugs.webkit.org/show_bug.cgi?id=59025
+
+        I don't have a full understanding of the skipInlines case yet
+        (hence it's not as pretty as the non-skipping case), but
+        this is clearly a win, as both functions are much simpler
+        than their combined version.
+
+        Both of these functions still have bad names.  However the
+        bidiNext/bidiFirst names date all the way back to revision 1
+        of the WebKit repository. :)  So I don't feel too bad keeping
+        them for the moment.
+
+        * rendering/InlineIterator.h:
+        (WebCore::bidiNext):
+        (WebCore::bidiFirstSkippingInlines):
+        (WebCore::bidiFirstNotSkippingInlines):
+        * rendering/RenderBlock.cpp:
+        (WebCore::RenderBlock::simplifiedNormalFlowLayout):
+        * rendering/RenderBlockLineLayout.cpp:
+        (WebCore::RenderBlock::layoutInlineChildren):
+        (WebCore::RenderBlock::determineStartPosition):
+
+2011-04-20  Jia Pu  <jpu@apple.com>
+
+        Reviewed by Adele Peterson.
+    
+        [Mac] Like autocorrection, other types of substitution need to respect undo.
+        https://bugs.webkit.org/show_bug.cgi?id=59009
+        <rdar://problem/8601537>
+
+        Similar to autocorrection, we use SpellingCorrectionCommand to carry out other types of text substitution, so that
+        if user undoes the substitution, it will not be applied again. For CreateLinkCommand,  we add marker when it's undone
+        so that we won't automatically add link again.
+
+        * editing/CreateLinkCommand.h:
+        (WebCore::CreateLinkCommand::isCreateLinkCommand):
+        * editing/EditCommand.cpp:
+        (WebCore::EditCommand::isCreateLinkCommand):
+        * editing/EditCommand.h:
+        * editing/Editor.cpp:
+        (WebCore::Editor::unappliedEditing):
+        (WebCore::Editor::markAllMisspellingsAndBadGrammarInRanges):
+        * editing/SpellingCorrectionController.cpp:
+        (WebCore::SpellingCorrectionController::respondToAppliedEditing):
+        (WebCore::SpellingCorrectionController::respondToUnappliedEditing):
+        * editing/SpellingCorrectionController.h:
+        (WebCore::SpellingCorrectionController::UNLESS_ENABLED):
+
+2011-04-20  Steve Lacey  <sjl@chromium.org>
+
+        Reviewed by Eric Carlson.
+
+        [chromium] Move Chromium media controls into own root element.
+        https://bugs.webkit.org/show_bug.cgi?id=59018
+
+        No new tests as there is no functional change
+
+        * WebCore.gypi:
+        * css/mediaControlsChromium.css:
+        (audio::-webkit-media-controls-timeline-container, video::-webkit-media-controls-timeline-container):
+        * html/shadow/MediaControlRootElementChromium.cpp: Added.
+        Clone of html/shadow/MediaControlRootElement.cpp with all unused code removed.
+        * html/shadow/MediaControlRootElementChromium.h: Added.
+
+2011-04-20  Charlie Lee  <chocobo@chromium.org>
+
+        Reviewed by Dirk Schulze.
+
+        LEFilter change doesn't compile on ARM neon targets
+        https://bugs.webkit.org/show_bug.cgi?id=58671
+
+        Build fix for Chromium ARM/NEON platform. Added platform/graphics/filters/arm directory to build system.
+
+        * WebCore.gyp/WebCore.gyp:
+
+2011-04-20  Xiaomei Ji  <xji@chromium.org>
+
+        Reviewed by Ryosuke Niwa.
+
+        Continue (3rd) experiment with moving caret by word in visual order.
+        https://bugs.webkit.org/show_bug.cgi?id=58294
+
+        This patch along with r82588 and r83483 implements moving caret by
+        word in visual order.
+        
+        The overall algorithm is:
+        1. First get the InlineBox and offset of the pass-in VisiblePosition.
+        2. Based on the position (left boundary, middle, right boundary) of the offset and the
+           direction of the movement, look for visually adjacent word breaks.
+        2.1 If the offset is the minimum offset of the box,
+            return the rightmost word boundary in previous boxes if moving left.
+            return the leftmost word boundary in box and next boxes if moving right.
+        2.2 Similar for the case when offset is at the maximum offset of the box.
+        2.3 When offset is inside the box (not at boundaries), first find the previousWordPosition 
+            or nextWordPosition based on the directionality of the box. If this word break position 
+            is also inside the same box, return it. Otherwise (the nextWordPosition or 
+            previousWordPosition is not in the same box or is at the box boundary), collect all the 
+            word breaks in the box and search for the one closest to the input "offset" based on 
+            box directionality, block directionality, and movement direction. Continue search in 
+            adjacent boxes if needed.
+
+        Notes:
+        1. Word boundaries are collected one box at a time. Only when a boundary that is closest to 
+           the input position (in the moving direction) is not available in current box, word 
+           boundaries in adjacent box will be collected. So, there is no need to save InlineBox in 
+           word boundaries. Instead, the word boundaries are saved as a pair 
+           (VisiblePosition, offset) to avoid recomputing VisiblePosition.
+ 
+        2. We only collect boundaries of the right kind (i.e. left boundary of a word in LTR block
+           and right boundary of a word in RTL block). And word boundaries are collected using 
+           previousWordPosition() and nextWordPosition(). So when box directionality is the same as 
+           block directionality, word boundaries are collected from right to left visually in a LTR 
+           box, and word boundaries are collected from left to right visually in a RTL box. It is
+           the other way around when box directionality is different from block directionality.
+
+        3. To find the right kinds of word boundaries, we must move back and forth between words
+           in some situations. For example, if we're moving to the right in a LTR box in LTR block,
+           we cannot simply return nextWordPosition() because it would return the right boundary
+           of a word. Instead, we return nextWordPosition()'s nextWordPosition()'s previousWordPosition().
+
+        4. When collecting word breaks inside a box, it first computes a start position, then
+           collect the right kind of word breaks until it reaches the end of (or beyond) the box.
+           In the meanwhile, it might need special handling on the rightmost or leftmost position 
+           based on the directionality of the box and block. These computations do not consider the 
+           box's bidi level.
+
+        * editing/visible_units.cpp:
+        (WebCore::nextWordBreakInBoxInsideBlockWithDifferentDirectionality):
+        (WebCore::collectWordBreaksInBox):
+        (WebCore::previousWordBoundaryInBox):
+        (WebCore::nextWordBoundaryInBox):
+        (WebCore::visuallyLastWordBoundaryInBox):
+        (WebCore::leftWordBoundary):
+        (WebCore::rightWordBoundary):
+        (WebCore::leftWordPosition):
+        (WebCore::rightWordPosition):
+
+2011-04-20  Cris Neckar  <cdn@chromium.org>
+
+        Reviewed by Dirk Schulze.
+
+        Return early when the paint rect and the source rect do not overlap as no bytes need to be copied.
+        https://bugs.webkit.org/show_bug.cgi?id=57885
+
+        Test: svg/filters/svg-transform-blur-crash.xhtml
+
+        * platform/graphics/filters/FilterEffect.cpp:
+        (WebCore::FilterEffect::copyImageBytes):
+
+2011-04-20  Jian Li  <jianli@chromium.org>
+
+        Reviewed by Kenneth Russell.
+
+        Support DataView in workers
+        https://bugs.webkit.org/show_bug.cgi?id=59014
+
+        Test: fast/canvas/webgl/worker-data-view-test.html
+
+        * workers/WorkerContext.idl: Expose DataView constructor.
+
+2011-04-20  Chris Marrin  <cmarrin@apple.com>
+
+        Reviewed by Adam Roben.
+
+        REGRESSION (WebKit2): CSS animations on pages that use accelerated compositing stop after switching tabs
+        https://bugs.webkit.org/show_bug.cgi?id=57868
+        
+        Running CACFAnimations aren't remembered when layer tree is unparented and 
+        then reparented. Added a new ensureAnimationsSubmitted function to 
+        PlatformCALayer to traverse the tree and resubmit animations, setting the 
+        beginTime to the original start time of the animation. This is called in WK2
+        when layer tree is newly parented.
+        
+        I also consolidated currentTimeToMediaTime into PlatformCALayer so it can be shared
+        between PlatformCALayer and GraphicsLayerCA.
+
+        * platform/graphics/ca/GraphicsLayerCA.cpp:
+        * platform/graphics/ca/PlatformCAAnimation.h:
+            Remember actual animation start time in CACFAnimation beginTime property
+        * platform/graphics/ca/PlatformCALayer.h:
+            New ensureAnimationsSubmitted function which traverses layers and resubmits all animations
+        * platform/graphics/ca/mac/PlatformCALayerMac.mm:
+        * platform/graphics/ca/win/PlatformCALayerWin.cpp:
+
+2011-04-20  Eric Carlson  <eric.carlson@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        Adopt QTKit API for listing and deleting file in its media cache.
+        <rdar://problem/9130029> 
+        https://bugs.webkit.org/show_bug.cgi?id=58795
+
+        Not possible to test automatically, verified manually.
+
+        * WebCore.exp.in: Export new media download cache functions.
+
+        * platform/graphics/mac/MediaPlayerPrivateQTKit.h:
+        * platform/graphics/mac/MediaPlayerPrivateQTKit.mm:
+        (WebCore::MediaPlayerPrivateQTKit::registerMediaEngine): Register cache management functions.
+        (WebCore::MediaPlayerPrivateQTKit::getSitesInMediaCache): New, return cache origins.
+        (WebCore::MediaPlayerPrivateQTKit::clearMediaCache): New, empty the media cache.
+        (WebCore::MediaPlayerPrivateQTKit::clearMediaCacheForSite): New, delete files in the media
+            cache for one origin.
+
+        * platform/mac/WebCoreSystemInterface.h: Add new WKSI functions.
+        * platform/mac/WebCoreSystemInterface.mm: Ditto.
+
+2011-04-20  Dirk Schulze  <krit@webkit.org>
+
+        Reviewed by Simon Fraser.
+
+        SVG feDropShadow implementation of SVG Filters 1.2
+        https://bugs.webkit.org/show_bug.cgi?id=52513
+
+        Support different radii for horizontal and vertical blurring in ShadowBlur. This is a preperation for feDropShadow.
+        feDropShadow is a new shorthand filter effect for the up-comming Filter 1.0 specification and will use ShadowBlur.
+        feGaussianBlur might make use of ShadowBlur as well later (on SourceAlpha input).
+        Added ShadowBlur to remaining platforms.
+
+        The changes can't be tested before the changes in feGaussianBlur or feDropShadow. Current behavior is not affected.
+
+        * Android.mk:
+        * CMakeLists.txt:
+        * GNUmakefile.list.am:
+        * WebCore.pro:
+        * platform/graphics/FloatSize.h:
+        (WebCore::FloatSize::scale):
+        * platform/graphics/ShadowBlur.cpp:
+        (WebCore::ScratchBuffer::ScratchBuffer):
+        (WebCore::ScratchBuffer::setLastShadowValues):
+        (WebCore::ScratchBuffer::setLastInsetShadowValues):
+        (WebCore::ScratchBuffer::matchesLastShadow):
+        (WebCore::ScratchBuffer::matchesLastInsetShadow):
+        (WebCore::ScratchBuffer::clearScratchBuffer):
+        (WebCore::ShadowBlur::ShadowBlur):
+        (WebCore::calculateLobes):
+        (WebCore::ShadowBlur::blurLayerImage):
+        (WebCore::ShadowBlur::adjustBlurRadius):
+        (WebCore::ShadowBlur::calculateLayerBoundingRect):
+        (WebCore::computeSliceSizesFromRadii):
+        (WebCore::ShadowBlur::templateSize):
+        (WebCore::ShadowBlur::drawInsetShadowWithTiling):
+        (WebCore::ShadowBlur::drawRectShadowWithTiling):
+        (WebCore::ShadowBlur::drawLayerPieces):
+        * platform/graphics/ShadowBlur.h:
+        * platform/graphics/cg/GraphicsContextCG.cpp:
+        (WebCore::GraphicsContext::fillRect):
+        (WebCore::GraphicsContext::fillRoundedRect):
+        (WebCore::GraphicsContext::fillRectWithRoundedHole):
+
+2011-04-19  Roland Steiner  <rolandsteiner@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        Bug 52963 - Enable O(1) access to root from any node in shadow DOM subtree
+        https://bugs.webkit.org/show_bug.cgi?id=52963
+
+        .) Change base class of ShadowRoot from DocumentFragment to TreeScope.
+        .) Re-enable tree scope handling in Node (had ASSERT_NOT_REACHED, etc.).
+        .) Merged setTreeScope() with setTreeScopeRecursively()
+        .) Call setTreeScopeRecursively in DOM manipulation functions where applicable.
+        .) Adapt JavaScript Node wrappers (temporary code - see https://bugs.webkit.org/show_bug.cgi?id=58704).
+
+        No new tests. (refactoring)
+
+        * bindings/js/JSNodeCustom.cpp:
+        (WebCore::createWrapperInline):
+        * bindings/v8/custom/V8NodeCustom.cpp:
+        (WebCore::toV8Slow):
+        * dom/ContainerNode.cpp:
+        (WebCore::ContainerNode::takeAllChildrenFrom):
+        (WebCore::ContainerNode::removeBetween):
+        (WebCore::ContainerNode::removeChildren):
+        (WebCore::ContainerNode::parserAddChild):
+        * dom/Document.cpp:
+        (WebCore::Document::Document):
+        (WebCore::Document::~Document):
+        (WebCore::Document::setDocType):
+        * dom/Element.h:
+        * dom/Node.cpp:
+        (WebCore::Node::treeScope):
+        (WebCore::Node::setTreeScopeRecursively):
+        * dom/Node.h:
+        (WebCore::Node::document):
+        * dom/ShadowRoot.cpp:
+        (WebCore::ShadowRoot::ShadowRoot):
+        (WebCore::ShadowRoot::~ShadowRoot):
+        (WebCore::ShadowRoot::nodeType):
+        (WebCore::ShadowRoot::cloneNode):
+        (WebCore::ShadowRoot::childTypeAllowed):
+        * dom/ShadowRoot.h:
+        (WebCore::toShadowRoot):
+        * dom/TreeScope.cpp:
+        (WebCore::TreeScope::TreeScope):
+        (WebCore::TreeScope::setParentTreeScope):
+        * dom/TreeScope.h:
+        * rendering/RenderSlider.cpp:
+
+2011-04-20  Vsevolod Vlasov  <vsevik@chromium.org>
+
+        Reviewed by Pavel Feldman.
+
+        Web Inspector: Update front-end files list in WebCore.vcproj
+        https://bugs.webkit.org/show_bug.cgi?id=58896
+
+        * WebCore.vcproj/WebCore.vcproj:
+
+2011-04-20  Dimitri Glazkov  <dglazkov@chromium.org>
+
+        Qt build fix after r84380.
+
+        * css/CSSPrimitiveValueMappings.h: Moved EBorderCollapse-related casts from under ENABLE(SVG) guard.
+
+2011-04-20  Carlos Garcia Campos  <cgarcia@igalia.com>
+
+        Reviewed by Martin Robinson.
+
+        [GTK] Build libWebCore with the gtk sources too
+        https://bugs.webkit.org/show_bug.cgi?id=58968
+
+        In some cases webcore files are compiled twice, so it improves the
+        build time.
+
+        * GNUmakefile.am: Add webcore gtk sources to libWebCore sources.
+
+2011-04-20  Luke Macpherson   <macpherson@chromium.org>
+
+        Reviewed by Dimitri Glazkov.
+
+        Allow casting between CSSPrimitiveValue and EBorderCollapse to remove special-case logic from CSSStyleSelector.
+        https://bugs.webkit.org/show_bug.cgi?id=58964
+
+        No new tests as no new functionality added.
+
+        * css/CSSPrimitiveValueMappings.h:
+        Support casting to/from EBorderCollapse.
+        * css/CSSStyleSelector.cpp:
+        Use new casting ability to simplify code.
+        * rendering/style/RenderStyle.h:
+        Use EBorderCollapse instead of a bool for representing border collapse member variable.
+        * rendering/style/RenderStyleConstants.h:
+        Added EBorderCollapse enum.
+
+2011-04-19  Stephen White  <senorblanco@chromium.org>
+
+        Reviewed by Kenneth Russell.
+
+        Move and rename GLES2Canvas.
+        https://bugs.webkit.org/show_bug.cgi?id=58927
+
+        Move GLES2Canvas to platform/graphcs/gpu, where all the other
+        gpu-related files live, and rename it to GraphicsContextGPU to better
+        reflect its purpose.
+
+        Covered by existing tests.
+
+        * WebCore.gypi:
+        * platform/graphics/chromium/GLES2Canvas.cpp:
+        * platform/graphics/chromium/GLES2Canvas.h:
+        * platform/graphics/skia/GraphicsContextSkia.cpp:
+        (WebCore::GraphicsContext::fillPath):
+        (WebCore::GraphicsContext::setPlatformShadow):
+        * platform/graphics/skia/ImageBufferSkia.cpp:
+        * platform/graphics/skia/ImageSkia.cpp:
+        (WebCore::drawBitmapGLES2):
+        * platform/graphics/skia/PlatformContextSkia.cpp:
+        (WebCore::PlatformContextSkia::setSharedGraphicsContext3D):
+        * platform/graphics/skia/PlatformContextSkia.h:
+        (WebCore::PlatformContextSkia::gpuCanvas):
+
+2011-04-20  Benjamin Poulain  <benjamin.poulain@nokia.com>
+
+        Reviewed by Andreas Kling.
+
+        [Qt] Clean the style of our cookie methods
+        https://bugs.webkit.org/show_bug.cgi?id=58987
+
+        Got rid of the variables named "u" in favor just converting the url when needed.
+
+        * platform/qt/CookieJarQt.cpp:
+        (WebCore::setCookies): The variable p was unused.
+        The ::toAscii() depends on the default codec, use toLatin1() instead.
+        (WebCore::cookies): foreach() should use const reference.
+        (WebCore::cookieRequestHeaderFieldValue):
+
+2011-04-19  Mihai Parparita  <mihaip@chromium.org>
+
+        Reviewed by Adam Barth.
+
+        ScriptController.h is included in too many places
+        https://bugs.webkit.org/show_bug.cgi?id=58963
+
+        Remove ScriptController.h #includes from a bunch of .cpp files where it
+        doesn't appear to be necessary.
+
+        * bindings/js/JSCustomPositionCallback.cpp:
+        * bindings/js/JSCustomPositionErrorCallback.cpp:
+        * bindings/js/JSCustomVoidCallback.cpp:
+        * bindings/js/JSCustomXPathNSResolver.cpp:
+        * bindings/js/JSDOMWindowBase.cpp:
+        * bindings/js/JSDOMWindowShell.cpp:
+        * bindings/js/JSDocumentCustom.cpp:
+        * bindings/js/ScriptDebugServer.cpp:
+        * bindings/v8/NPV8Object.cpp:
+        * bindings/v8/ScriptCachedFrameData.cpp:
+        * bindings/v8/V8DOMWindowShell.cpp:
+        * bindings/v8/V8DOMWrapper.cpp:
+        * bindings/v8/V8IsolatedContext.cpp:
+        * bindings/v8/V8Proxy.cpp:
+        * bindings/v8/custom/V8LocationCustom.cpp:
+        * dom/Node.cpp:
+        * dom/ScriptElement.cpp:
+        * dom/XMLDocumentParser.cpp:
+        * dom/XMLDocumentParserQt.cpp:
+        * html/HTMLEmbedElement.cpp:
+        * html/HTMLObjectElement.cpp:
+        * html/HTMLPlugInElement.cpp:
+        * html/parser/HTMLConstructionSite.cpp:
+        * html/parser/HTMLTreeBuilder.cpp:
+        * inspector/InspectorProfilerAgent.cpp:
+        * loader/icon/IconDatabase.cpp:
+        * page/Chrome.cpp:
+        * page/Navigator.cpp:
+        * page/Page.cpp:
+        * plugins/PluginView.cpp:
+        * plugins/gtk/PluginViewGtk.cpp:
+        * plugins/qt/PluginViewQt.cpp:
+        * plugins/symbian/PluginViewSymbian.cpp:
+        * plugins/win/PluginViewWin.cpp:
+        * svg/SVGDocumentExtensions.cpp:
+        * xml/XMLTreeViewer.cpp:
+
+2011-04-20  Pavel Feldman  <pfeldman@google.com>
+
+        Reviewed by Yury Semikhatsky.
+
+        Web Inspector: add Save As to the Resources panel context menu.
+        https://bugs.webkit.org/show_bug.cgi?id=58983
+
+        * English.lproj/localizedStrings.js:
+        * inspector/front-end/ResourcesPanel.js:
+        (WebInspector.FrameResourceTreeElement.prototype.onattach):
+        (WebInspector.FrameResourceTreeElement.prototype._handleContextMenuEvent.save):
+        (WebInspector.FrameResourceTreeElement.prototype._handleContextMenuEvent):
+        (WebInspector.ResourceRevisionTreeElement.prototype._handleContextMenuEvent.save):
+        (WebInspector.ResourceRevisionTreeElement.prototype._handleContextMenuEvent):
+
+2011-04-20  Balazs Kelemen  <kbalazs@webkit.org>
+
+        Reviewed by Csaba Osztrogonác.
+
+        [Qt] Cleanup includepath adjustment for generated files
+        https://bugs.webkit.org/show_bug.cgi?id=58869
+
+        Build cleanup, no new tests.
+
+        * WebCore.pri: Add the directory of generated files to the include path
+        with absolute path to make it valid in the final build step. Remove
+        unnecessary logic.
+
+2011-04-20  Mariusz Grzegorczyk  <mariusz.g@samsung.com>
+
+        Reviewed by Andreas Kling.
+
+        [EFL] Initializing m_window member field in PluginView.cpp for efl port
+        https://bugs.webkit.org/show_bug.cgi?id=58311
+
+        No new tests needed: only initializing class member.
+
+        * plugins/PluginView.cpp:
+        (WebCore::PluginView::PluginView):
+
+2011-04-20  Pavel Feldman  <pfeldman@google.com>
+
+        Not reviewed: fix Leopard compile.
+
+        * inspector/InspectorFrontendClient.h:
+        * inspector/InspectorFrontendClientLocal.h:
+        (WebCore::InspectorFrontendClientLocal::saveAs):
+
+2011-04-20  Pavel Feldman  <pfeldman@google.com>
+
+        Reviewed by Yury Semikhatsky.
+
+        Web Inspector: add saveAs into the InspectorFrontendHost binding.
+        https://bugs.webkit.org/show_bug.cgi?id=58979
+
+        * English.lproj/localizedStrings.js:
+        * inspector/InspectorFrontendClient.h:
+        (WebCore::InspectorFrontendClient::saveAs):
+        (WebCore::InspectorFrontendClient::saveSessionSetting):
+        (WebCore::InspectorFrontendClient::loadSessionSetting):
+        * inspector/InspectorFrontendHost.cpp:
+        (WebCore::InspectorFrontendHost::saveAs):
+        * inspector/InspectorFrontendHost.h:
+        * inspector/InspectorFrontendHost.idl:
+        * inspector/front-end/InspectorFrontendHostStub.js:
+        (.WebInspector.InspectorFrontendHostStub.prototype.saveAs.fr.onload):
+        (.WebInspector.InspectorFrontendHostStub.prototype.saveAs):
+        * inspector/front-end/NetworkPanel.js:
+        (WebInspector.NetworkPanel.prototype._contextMenu):
+        (WebInspector.NetworkPanel.prototype._copyAll):
+        (WebInspector.NetworkPanel.prototype._copyResource):
+        (WebInspector.NetworkPanel.prototype._exportAll):
+        (WebInspector.NetworkPanel.prototype._exportResource):
+        * inspector/front-end/Settings.js:
+        * inspector/front-end/utilities.js:
+        ():
+
+2011-04-20  Yury Semikhatsky  <yurys@chromium.org>
+
+        Reviewed by Tony Gentilcore.
+
+        Error event in <script> element shouldn't bubble
+        https://bugs.webkit.org/show_bug.cgi?id=51040
+
+        Test: svg/dom/SVGScriptElement/script-onerror-bubbling.svg
+
+        * dom/ScriptElement.cpp:
+        (WebCore::ScriptElement::dispatchErrorEvent): the method now has same implementation for all script
+        elements, script load error event doesn' bubble.
+        * dom/ScriptElement.h:
+        * html/HTMLScriptElement.cpp:
+        * html/HTMLScriptElement.h:
+        * html/parser/HTMLScriptRunner.cpp:
+        (WebCore::HTMLScriptRunner::executePendingScriptAndDispatchEvent):
+        * svg/SVGScriptElement.cpp:
+        (WebCore::SVGScriptElement::parseMappedAttribute): SVG script element now supports onerror
+        hanlder which behaves the same way as onerror in HTML script element: it's invoked when
+        script loading fails and the event doesn't bubble.
+        * svg/SVGScriptElement.h:
+
+2011-04-20  Pavel Feldman  <pfeldman@google.com>
+
+        Reviewed by Yury Semikhatsky.
+
+        Web Inspector: minor protocol cleanups (refined types).
+        https://bugs.webkit.org/show_bug.cgi?id=58970
+
+        * inspector/InjectedScriptSource.js:
+        * inspector/Inspector.json:
+
+2011-04-20  Leo Yang  <leo.yang@torchmobile.com.cn>
+
+        Reviewed by Eric Seidel.
+
+        Leaks beneath RenderSVGShadowTreeRootContainer::updateFromElement seen on SnowLeopard Intel Leaks
+        https://bugs.webkit.org/show_bug.cgi?id=56672
+
+        ~RenderSVGShadowTreeRootContainer() cleared shadow host only if
+        the shadow root is attached. This is wrong because it will
+        leak shadow root when the root is not attached. For example, it
+        leaks shadow root of <use> element which is pending on resource.
+
+        This patch is clearing shadow host if m_shadowRoot is valid to
+        prevent leaking.
+
+        Fixing leaking, no new tests.
+
+        * rendering/svg/RenderSVGShadowTreeRootContainer.cpp:
+        (WebCore::RenderSVGShadowTreeRootContainer::~RenderSVGShadowTreeRootContainer):
+
+2011-04-19  Maciej Stachowiak  <mjs@apple.com>
+
+        Reviewed by Antti Koivisto.
+
+        Reproducible crash two-finger zooming at multiple sites in WebCore::RenderLayer::isTransparent
+        https://bugs.webkit.org/show_bug.cgi?id=58868
+
+        I could not figure out how to make a test.
+
+        * rendering/RenderLayer.cpp:
+        (WebCore::RenderLayer::paintLayer): Check for existence of a
+        parent before calling a method on it.
+
+2011-04-20  Gyuyoung Kim  <gyuyoung.kim@samsung.com>
+
+        Reviewed by Daniel Bates.
+
+        [EFL] Add current time to media control panel.
+        https://bugs.webkit.org/show_bug.cgi?id=58866
+
+        Implement paintMediaCurrentTime() to show playing time of media content.
+
+        * platform/efl/RenderThemeEfl.cpp:
+        (WebCore::RenderThemeEfl::RenderThemeEfl):
+        (WebCore::RenderThemeEfl::formatMediaControlsCurrentTime):
+        (WebCore::RenderThemeEfl::paintMediaCurrentTime):
+        * platform/efl/RenderThemeEfl.h:
+
+2011-04-19  Jungshik Shin  <jshin@chromium.org>
+
+        Reviewed by Adam Barth
+
+        Update the list of Unicode blocks to treat as complex scripts
+        per Unicode 6.0. Also, make [U+02E5..U+02E9] (IPA tone marks)
+        go through the complex script code path.
+
+        Test: fast/text/ipa-tone-letters.html
+
+        http://bugs.webkit.org/show_bug.cgi?id=39799
+
+        * platform/graphics/Font.cpp:
+        (WebCore::Font::codePath):
+
+2011-04-19  Pratik Solanki  <psolanki@apple.com>
+
+        Reviewed by Simon Fraser.
+
+        Follow on fix for https://bugs.webkit.org/show_bug.cgi?id=58926
+
+        Move the assert from Image::drawPattern() to Image::drawTiled() so we don't hit it when
+        trying to paint GeneratedImages.
+
+        * platform/graphics/Image.cpp:
+        (WebCore::Image::drawTiled):
+        * platform/graphics/cg/ImageCG.cpp:
+        (WebCore::Image::drawPattern):
+
+2011-04-19  Simon Fraser  <simon.fraser@apple.com>
+
+        Fix 32-bit builds.
+
+        * rendering/RenderBox.cpp:
+        (WebCore::RenderBox::determineBackgroundBleedAvoidance):
+        * rendering/RenderBoxModelObject.cpp:
+        (WebCore::RenderBoxModelObject::paintFillLayerExtended):
+
+2011-04-19  Naoki Takano  <takano.naoki@gmail.com>
+
+        Reviewed by Kent Tamura.
+
+        [Chromium]UI polishes and tweaks to Autofill dropdown menu.
+        https://bugs.webkit.org/show_bug.cgi?id=58505
+        http://code.google.com/p/chromium/issues/detail?id=51077
+
+        No new tests. Because this is autofill looking problem in Chromium.
+        Add m_menuType as PopupMenuStyle to change popup style change.
+        Put kLinePaddingHeight at the top and bottom of each line if m_menuType is AutofillPopup.
+        Change separator color to #dcdcdc and remove sparatorPadding at the edge if m_menuType is AutofillPopup.
+        Change the line height of separator as only the piece if m_menuType is AutofillPopup.
+        Change the label font size 0.9 time smaller than regular font size if m_menuType is AutofillPopup.
+
+        * platform/PopupMenuStyle.h: Add enum PopupMenuType;
+        (WebCore::PopupMenuStyle::PopupMenuStyle): Add m_menuType.
+        (WebCore::PopupMenuStyle::menuType): Add to change the style according to the return value.
+        * platform/chromium/PopupMenuChromium.cpp:
+        (WebCore::PopupListBox::paintRow):Change the separator color to #dcdcdc.
+        Change the edge padding according to menuStyle().
+        (WebCore::PopupListBox::getRowHeight): Add kLineHeightMargin*2 for each line height.
+
+2011-04-19  Simon Fraser  <simon.fraser@apple.com>
+
+        Reviewed by Dan Bernstein.
+
+        background color of elements with border-radius shows around outer edge of border at corners
+        https://bugs.webkit.org/show_bug.cgi?id=21819
+        
+        When drawing a background followed by a border with the same rounded
+        clip, some border color leaks out because of antialiasing.
+        
+        Fix this by using two different strategies depending on the colors.
+        If the border is opaque on all sides, we can inset the background by
+        a device pixel. If not, then we have to draw the unclipped background
+        and border into a transparency layer, and then clip that.
+        
+        A futher possible solution is mentioned in a comment in
+        determineBackgroundBleedAvoidance() but not yet implemented.
+        
+        Also don't try to paint shadows with zero offset, spread and blur.
+
+        Test: fast/backgrounds/background-leakage.html,
+              fast/backgrounds/background-leakage-transforms.html
+
+        * rendering/RenderBoxModelObject.h:
+        Add a BackgroundBleedAvoidance enum with a value for each
+        strategy.
+        * rendering/RenderBoxModelObject.cpp:
+        (WebCore::RenderBoxModelObject::paintFillLayerExtended):
+        Pass BackgroundBleedAvoidance, bail early if the border rect is empty.
+        If using the transparency layer solution, don't bother to clip
+        to the rounded rect for the background. If the strategy is to
+        shrink the background, do that.
+        (WebCore::BorderEdge::BorderEdge):
+        (WebCore::BorderEdge::obscuresBackgroundEdge):
+        Helper method to determine if this border side will totally
+        obscured by the border edge, allowing us to inset it.
+        (WebCore::RenderBoxModelObject::paintOneBorderSide):
+        Pass BackgroundBleedAvoidance through.
+        (WebCore::RenderBoxModelObject::paintBorderSides):
+        Ditto.
+        (WebCore::RenderBoxModelObject::paintTranslucentBorderSides):
+        Ditto.
+        (WebCore::RenderBoxModelObject::paintBorder):
+        Fill BorderEdges using getBorderEdgeInfo now.
+        Don't clip to the rounded border if we are using the
+        transparency layer solution.
+        (WebCore::RenderBoxModelObject::drawBoxSideFromPath):
+        Pass bleedAvoidance through, and use it for double borders.
+        (WebCore::RenderBoxModelObject::getBorderEdgeInfo):
+        Helper to fill in the BorderEdge array.
+        (WebCore::RenderBoxModelObject::borderObscuresBackgroundEdge):
+        Used to determine if we can use the background shrinkage solution.
+        (WebCore::RenderBoxModelObject::paintBoxShadow):
+        Don't paint shadows that should not be visible.
+
+        * rendering/RenderBox.h:
+        * rendering/RenderBox.cpp:
+        (WebCore::RenderBox::paintRootBoxFillLayers):
+        Pass BackgroundBleedNone for the root box.
+        
+        (WebCore::RenderBox::determineBackgroundBleedAvoidance):
+        Determine which bleed strategy we can use.
+        
+        (WebCore::RenderBox::paintBoxDecorationsWithSize):
+        Based on the bleedAvoidance, make a transparency layer
+        which will be clipped to the rounded border outside edge,
+        and pass bleedAvoidance to the background and border-painting
+        methods.        
+        (WebCore::RenderBox::paintMaskImages):
+        Use BackgroundBleedNone.
+        (WebCore::RenderBox::paintFillLayers):
+        (WebCore::RenderBox::paintFillLayer):
+        Pass bleedAvoidance through.
+
+        * rendering/InlineFlowBox.cpp:
+        (WebCore::InlineFlowBox::paintFillLayer):
+        (WebCore::InlineFlowBox::paintBoxDecorations):
+        Pass BackgroundBleedNone. At some point we may want to do the right
+        thing for split inlines.
+
+        * rendering/RenderFieldset.cpp:
+        (WebCore::RenderFieldset::paintBoxDecorations):
+        * rendering/RenderTableCell.cpp:
+        (WebCore::RenderTableCell::paintBackgroundsBehindCell):
+        Pass BackgroundBleedNone.
+
+2011-04-19  Yuta Kitamura  <yutak@chromium.org>
+
+        Reviewed by Alexey Proskuryakov.
+
+        WebSocket: Add assertion for SocketStreamError::failingURL.
+        https://bugs.webkit.org/show_bug.cgi?id=58765
+
+        No new tests, because an existing test http/tests/inspector/console-websocket-error.html should cover this.
+
+        * websockets/WebSocketChannel.cpp:
+        (WebCore::WebSocketChannel::didFail): If error.failingURL() is provided, it must be the same as
+        m_handshake.url(). failingURL may be null if SocketStreamHandle has created a SocketStreamError
+        using zero- or one-argument constructor (which is old version but some ports are still using it).
+        In that case, m_handshake.url() is passed to addMessage().
+
+2011-04-19  Eric Carlson  <eric.carlson@apple.com>
+
+        Reviewed by Dimitri Glazkov.
+
+        Media controls status display should not be hidden for live streams
+        https://bugs.webkit.org/show_bug.cgi?id=58952
+
+        Tested manually because we don't have any live streams to test in DRT.
+
+        * html/shadow/MediaControlElements.cpp:
+        (WebCore::MediaControlStatusDisplayElement::update): Set the status to "Loading" only until
+            there is something to display (readyState exceeds HAVE_METADATA).
+        * html/shadow/MediaControlRootElement.cpp:
+        (WebCore::MediaControlRootElement::loadedMetadata): Don't hide the status display for
+            live streams.
+
+2011-04-19  Julien Chaffraix  <jchaffraix@codeaurora.org>
+
+        Reviewed by Alexey Proskuryakov.
+
+        https://bugs.webkit.org/show_bug.cgi?id=45425
+        HTMLLinkElement.disabled does not forward value to the Stylesheet's disabled attribute on setting
+
+        Test: fast/html/htmllink-disable.html
+        Test: fast/dom/HTMLLinkElement/disabled-attribute.html
+
+        Match the HTML5 specification by forwarding the 'disabled' attribute to our stylesheet.
+
+        Based on previous work by Bijan Amirzada <bijana@codeaurora.org>.
+
+        * html/HTMLLinkElement.cpp:
+        (WebCore::HTMLLinkElement::disabled): Return our stylesheet's 'disabled' value or
+        false if we don't have a stylesheet.
+        (WebCore::HTMLLinkElement::setDisabled): Set our stylesheet's 'disabled' value or
+        ignore the call if we don't have a stylesheet.
+        * html/HTMLLinkElement.h:
+        * html/HTMLLinkElement.idl: Remove 'Reflect' as it is not a reflected attribute anymore in HTML5.
+        This matches the way FF4, Opera and IE9 handle the attribute.
+
+2011-04-19  Ryosuke Niwa  <rniwa@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Remove calls to deprecatedOffset and deprecatedNode in TypingCommand
+        https://bugs.webkit.org/show_bug.cgi?id=58569
+
+        Removed all calls to deprecatedOffset and deprecatedNode.
+
+        * editing/TypingCommand.cpp:
+        (WebCore::TypingCommand::insertText):
+        (WebCore::TypingCommand::deleteKeyPressed):
+        (WebCore::TypingCommand::forwardDeleteKeyPressed):
+
 2011-04-19  Adrienne Walker  <enne@google.com>
 
         Reviewed by Kenneth Russell.
