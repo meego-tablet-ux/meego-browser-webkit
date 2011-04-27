@@ -2,6 +2,202 @@
 
         Reviewed by Kenneth Russell.
 
+        [chromium] Only reset tiles if the LayerRendererChromium is actually changing
+        https://bugs.webkit.org/show_bug.cgi?id=59572
+
+        http://trac.webkit.org/changeset/84981/ caused us to reset the tiles
+        when LayerRendererChromium was set.  We set this pointer every frame
+        and should only reset the tiles if the new LayerRendererChromium is
+        different from the old one (indicating a context loss), not just reset
+        on every frame.
+
+        * platform/graphics/chromium/LayerTilerChromium.cpp:
+        (WebCore::LayerTilerChromium::setLayerRenderer):
+        * platform/graphics/chromium/LayerTilerChromium.h:
+
+2011-04-26  Dinesh K Garg  <dineshg@codeaurora.org>
+
+        Reviewed by Eric Seidel.
+
+        beginElement broken by setAttribute
+        https://bugs.webkit.org/show_bug.cgi?id=26019
+
+        Test: svg/animations/animate-beginElementAt.svg
+
+        * svg/SVGAnimationElement.cpp:
+        (WebCore::SVGAnimationElement::attributeChanged):
+        Reset the animation state here as the rest of the code reads it and would still
+        think we are animating when we are not.
+
+        * svg/animation/SVGSMILElement.h:
+        (WebCore::SVGSMILElement::setInactive): Helper function to reset the state.
+
+2011-04-26  Sheriff Bot  <webkit.review.bot@gmail.com>
+
+        Unreviewed, rolling out r84989.
+        http://trac.webkit.org/changeset/84989
+        https://bugs.webkit.org/show_bug.cgi?id=59566
+
+        REGRESSION (r84989): Lots of vertical text tests failing on
+        windows (Requested by weinig on #webkit).
+
+        * platform/graphics/FontPlatformData.h:
+        * platform/graphics/win/FontCacheWin.cpp:
+        (WebCore::FontCache::getFontDataForCharacters):
+        (WebCore::FontCache::createFontPlatformData):
+        * platform/graphics/win/FontCustomPlatformData.cpp:
+        (WebCore::FontCustomPlatformData::fontPlatformData):
+        * platform/graphics/win/FontPlatformDataCGWin.cpp:
+        (WebCore::FontPlatformData::FontPlatformData):
+        * platform/graphics/win/FontPlatformDataWin.cpp:
+        (WebCore::FontPlatformData::FontPlatformData):
+
+2011-04-26  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by Eric Seidel.
+
+        Try again:
+            Remove JSDOMWrapperWithGlobalPointer now that all JSDOMWrappers have global objects
+            https://bugs.webkit.org/show_bug.cgi?id=59310
+
+        * bindings/js/JSDOMBinding.h:
+        (WebCore::DOMConstructorObject::DOMConstructorObject):
+        * bindings/js/JSDOMWrapper.h:
+        (WebCore::JSDOMWrapper::globalObject):
+        (WebCore::JSDOMWrapper::scriptExecutionContext):
+        (WebCore::JSDOMWrapper::createStructure):
+        (WebCore::JSDOMWrapper::JSDOMWrapper):
+        * bindings/scripts/CodeGeneratorJS.pm:
+
+2011-04-26  Sam Weinig  <sam@webkit.org>
+
+        Reviewed by David Hyatt.
+
+        Remove Datagrid from the tree
+        https://bugs.webkit.org/show_bug.cgi?id=59543
+
+        * Android.derived.jscbindings.mk:
+        * Android.derived.v8bindings.mk:
+        * Android.jscbindings.mk:
+        * Android.v8bindings.mk:
+        * CMakeLists.txt:
+        * CodeGenerators.pri:
+        * Configurations/FeatureDefines.xcconfig:
+        * DerivedSources.cpp:
+        * DerivedSources.make:
+        * GNUmakefile.am:
+        * GNUmakefile.list.am:
+        * UseJSC.cmake:
+        * WebCore.gypi:
+        * WebCore.pro:
+        * WebCore.vcproj/WebCore.vcproj:
+        * WebCore.xcodeproj/project.pbxproj:
+        * bindings/js/JSBindingsAllInOne.cpp:
+        * bindings/js/JSDataGridColumnListCustom.cpp: Removed.
+        * bindings/js/JSDataGridDataSource.cpp: Removed.
+        * bindings/js/JSDataGridDataSource.h: Removed.
+        * bindings/js/JSHTMLDataGridElementCustom.cpp: Removed.
+        * bindings/v8/V8DataGridDataSource.cpp: Removed.
+        * bindings/v8/V8DataGridDataSource.h: Removed.
+        * bindings/v8/custom/V8DataGridColumnListCustom.cpp: Removed.
+        * bindings/v8/custom/V8HTMLDataGridElementCustom.cpp: Removed.
+        * css/CSSStyleSelector.cpp:
+        * css/CSSStyleSelector.h:
+        * css/html.css:
+        (input, textarea, keygen, select, button, isindex):
+        (select:disabled, keygen:disabled, optgroup:disabled, option:disabled):
+        * editing/htmlediting.cpp:
+        (WebCore::canHaveChildrenForEditing):
+        * features.pri:
+        * html/DOMDataGridDataSource.cpp: Removed.
+        * html/DOMDataGridDataSource.h: Removed.
+        * html/DataGridColumn.cpp: Removed.
+        * html/DataGridColumn.h: Removed.
+        * html/DataGridColumn.idl: Removed.
+        * html/DataGridColumnList.cpp: Removed.
+        * html/DataGridColumnList.h: Removed.
+        * html/DataGridColumnList.idl: Removed.
+        * html/DataGridDataSource.h: Removed.
+        * html/HTMLDataGridCellElement.cpp: Removed.
+        * html/HTMLDataGridCellElement.h: Removed.
+        * html/HTMLDataGridCellElement.idl: Removed.
+        * html/HTMLDataGridColElement.cpp: Removed.
+        * html/HTMLDataGridColElement.h: Removed.
+        * html/HTMLDataGridColElement.idl: Removed.
+        * html/HTMLDataGridElement.cpp: Removed.
+        * html/HTMLDataGridElement.h: Removed.
+        * html/HTMLDataGridElement.idl: Removed.
+        * html/HTMLDataGridRowElement.cpp: Removed.
+        * html/HTMLDataGridRowElement.h: Removed.
+        * html/HTMLDataGridRowElement.idl: Removed.
+        * html/HTMLElement.cpp:
+        (WebCore::HTMLElement::ieForbidsInsertHTML):
+        * html/HTMLElementsAllInOne.cpp:
+        * html/HTMLTagNames.in:
+        * page/DOMWindow.idl:
+        * rendering/RenderBox.cpp:
+        (WebCore::RenderBox::sizesToIntrinsicLogicalWidth):
+        * rendering/RenderDataGrid.cpp: Removed.
+        * rendering/RenderDataGrid.h: Removed.
+        * rendering/RenderingAllInOne.cpp:
+
+2011-04-26  Chun-Lung Huang  <alvincl.huang@gmail.com>
+
+        Reviewed by Adele Peterson.
+
+        On WebKit (Windows), glyphs in vertical text tests are rotated 90
+        degrees clockwise.  https://bugs.webkit.org/show_bug.cgi?id=48459
+
+        This platform dependent patch makes WebKit (Windows) show the
+        vertical writing text correctly.  Job was done by adding a prefix '@'
+        in front of the font family name (Windows Only). No new tests added.
+        Some layout tests images:
+        http://www.flickr.com/photos/burorly/sets/72157625585506341/
+
+        * platform/graphics/FontPlatformData.h:
+        * platform/graphics/win/FontCacheWin.cpp:
+        (WebCore::FontCache::getFontDataForCharacters):
+        (WebCore::FontCache::createFontPlatformData):
+        * platform/graphics/win/FontCustomPlatformData.cpp:
+        (WebCore::FontCustomPlatformData::fontPlatformData):
+        * platform/graphics/win/FontPlatformDataCGWin.cpp:
+        (WebCore::FontPlatformData::FontPlatformData):
+        * platform/graphics/win/FontPlatformDataWin.cpp:
+        (WebCore::FontPlatformData::FontPlatformData):
+
+2011-04-26  Jer Noble  <jer.noble@apple.com>
+
+        Reviewed by Brady Eidson.
+
+        HTML5 video fullscreen transition causes an audio stutter
+        https://bugs.webkit.org/show_bug.cgi?id=59544
+
+        AVFoundation will momentarily stutter when you disconnect a AVPlayerLayer 
+        from its AVPlayer.  Since you shouldn't necessarily have to destroy the
+        layer to render it invisible, instead just set the layer as hidden.
+
+        * platform/graphics/avfoundation/MediaPlayerPrivateAVFoundation.cpp:
+        (WebCore::MediaPlayerPrivateAVFoundation::setVisible): Call through to platformSetVisible().
+        * platform/graphics/avfoundation/MediaPlayerPrivateAVFoundation.h:
+        * platform/graphics/avfoundation/MediaPlayerPrivateAVFoundationObjC.h:
+        * platform/graphics/avfoundation/MediaPlayerPrivateAVFoundationObjC.mm:
+        (WebCore::MediaPlayerPrivateAVFoundationObjC::platformSetVisible): Added.
+
+2011-04-26  Christian Dywan  <christian@lanedo.com>
+
+        Reviewed by Eric Seidel.
+
+        Extra separator after Select All in context menu
+        https://bugs.webkit.org/show_bug.cgi?id=54092
+
+        * page/ContextMenuController.cpp: Move separator to non-GTK+
+            port guards since it is for the spelling options menu
+            which the GTK+ port doesn't use.
+
+2011-04-26  James Robinson  <jamesr@chromium.org>
+
+        Reviewed by Kenneth Russell.
+
         [chromium] Clear out LayerTilerChromium's tiles on lost context
         https://bugs.webkit.org/show_bug.cgi?id=59233
 
