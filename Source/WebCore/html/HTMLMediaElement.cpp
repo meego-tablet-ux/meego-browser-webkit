@@ -1638,6 +1638,23 @@ void HTMLMediaElement::scheduleTimeupdateEvent(bool periodicEvent)
         scheduleEvent(eventNames().timeupdateEvent);
         m_lastTimeUpdateEventWallTime = now;
         m_lastTimeUpdateEventMovieTime = movieTime;
+
+        if(movieTime == duration()){
+        /*
+         * add video end event send. based on requirements for profiling.
+         */
+            if (loop()) {
+                ExceptionCode ignoredException;
+                m_sentEndEvent = false;
+                seek(0, ignoredException);
+            } else {
+                if (!m_sentEndEvent) {
+                    m_sentEndEvent = true;
+                    scheduleEvent(eventNames().endedEvent);
+                }
+            }
+        }
+
     }
 }
 
