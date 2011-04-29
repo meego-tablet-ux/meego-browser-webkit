@@ -262,14 +262,34 @@ public:
     bool touchEvent(const WebTouchEvent&);
 
 #if defined(TOOLKIT_MEEGOTOUCH)
+    enum SelectionStage {
+      Unknown = -1,
+      Start,
+      Modifying,
+      Committed
+    };
 	virtual void queryNodeTypeAtPoint(int x, int y, bool &is_embedded_object, bool &is_editable_text);
 	virtual void drawLinkTapHighlight(WebCanvas* canvas, const WebRect& rect); 
 
 	virtual void drawSelectionHandle(WebCanvas* canvas, const WebRect& rect);
+
+	virtual void drawSelectionShade(WebCanvas* canvas, const WebRect& rect);
+
+	WebCore::IntPoint m_handlerStart;
+	WebCore::IntPoint m_handlerEnd;
+
+	bool m_selectionInParagraph;
+	SelectionStage m_selectionStage;
+
+	WebCore::IntPoint m_lastMouseStart;
+	WebCore::IntPoint m_lastMouseEnd;
+
 	virtual void getSelectionStartEndPoint(WebCore::IntPoint& startPoint, WebCore::IntPoint& endPoint);
 	virtual void invalidateSelectionHandler(WebCore::IntPoint pos);
 	virtual void setSelectionRange(const WebPoint start, const WebPoint end, bool set);
+	virtual void selectRange(const WebCore::IntPoint start, const WebCore::IntPoint end);
 	virtual void selectItem(const WebPoint pos);
+	virtual void commitSelection();
 	virtual void drawFilledCircleAtPoint(WebCanvas* canvas, const WebCore::IntPoint pos, int radius, WebCore::Color& color);
 	virtual void zoom2TextPre(int x, int y);
 	virtual void zoom2TextPost();

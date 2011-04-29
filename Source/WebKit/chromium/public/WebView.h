@@ -359,6 +359,7 @@ public:
     // Selection support
     virtual void setSelectionRange(const WebPoint start, const WebPoint end, bool set) = 0;
     virtual void selectItem(const WebPoint pos) = 0;
+    virtual void commitSelection() = 0;
 #endif
 
 protected:

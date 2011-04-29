@@ -1298,6 +1298,8 @@ void WebViewImpl::paint(WebCanvas* canvas, const WebRect& rect)
 #if defined(TOOLKIT_MEEGOTOUCH)
     drawLinkTapHighlight(canvas, rect);
     drawSelectionHandle(canvas, rect);
+    if (!m_selectionInParagraph)
+      drawSelectionShade(canvas, rect);
 #endif
 }
 
@@ -1305,6 +1307,8 @@ void WebViewImpl::paint(WebCanvas* canvas, const WebRect& rect)
 
 void WebViewImpl::selectItem(const WebPoint pos)
 {
+  setSelectionColors(0x801e90ff, 0xb0000000, /*Color::black,*/ 0xffc8c8c8, 0xff323232);
+
   IntPoint point(pos.x, pos.y);
   HitTestResult result = hitTestResultForWindowPos(point);
   
@@ -1333,6 +1337,8 @@ void WebViewImpl::selectItem(const WebPoint pos)
 
   m_selectFrame->selection()->setSelection(newSelection);
 
+  m_selectionInParagraph = true;
+  m_selectionStage = Start;
   // new Selection, need to retrieve the start/end Rect for it
   IntPoint startPoint;
   IntPoint endPoint;
@@ -1349,6 +1355,142 @@ void WebViewImpl::selectItem(const WebPoint pos)
   invalidateSelectionHandler(m_cachedSelectionEndPoint);
 }
 
+/*
+ * commit the selection
+ * when user releases the mouse, we will commit the selection 
+ * the selection will be the bound of the original selection
+ * in this way, we will avoid irregular selection region
+ */
+void WebViewImpl::commitSelection()
+{
+  if (m_selectionInParagraph) return;
+
+  if (!m_selectFrame) return;
+  SelectionController* sc = m_selectFrame->selection();
+
+  if ( sc->selection().isNone()) return;
+
+  FloatRect rc = sc->bounds(false);
+
+  // reduce the rect by 1 pixel to avoid some corner case 
+  int start_x = round(rc.x() + 0.5);
+  int start_y = round(rc.y() + 0.5);
+  int end_x = round(rc.x() + rc.width() - 1);
+  int end_y = round(rc.y() + rc.height() - 1);
+
+  IntRect ir = IntRect(start_x, start_y, end_x - start_x, end_y - start_y);
+
+  IntPoint start(start_x, start_y);
+  IntPoint end(end_x, end_y);
+
+  m_startPoint = start;
+  m_endPoint = end;
+    
+  // to select the bounded area
+  selectRange(start, end);
+
+  m_selectionStage = Committed;
+
+  // clear the old start/end handlers
+  invalidateSelectionHandler(m_selectFrame->view()->contentsToWindow(m_lastMouseStart));
+  invalidateSelectionHandler(m_selectFrame->view()->contentsToWindow(m_lastMouseEnd));
+}
+
+/*
+ * in content coordinate
+ */
+void WebViewImpl::selectRange(const IntPoint start, const IntPoint end)
+{
+
+  // get VisiblePosition of start and end
+  HitTestResult start_result(m_page->mainFrame()->eventHandler()->hitTestResultAtPoint(start, false));
+  if ( !(start_result.innerNode() && start_result.innerNode()->renderer() )) return;
+
+  RenderObject* start_renderer = start_result.innerNode()->renderer();
+  VisiblePosition startPosition(start_renderer->positionForPoint(start_result.localPoint()));
+  VisiblePosition startWord  = startOfWord(startPosition);
+  VisiblePosition endWord = endOfWord(startPosition);
+  if (startPosition != startWord && startPosition != endWord ) startPosition = startWord;
+
+  HitTestResult end_result(m_page->mainFrame()->eventHandler()->hitTestResultAtPoint(end, false));
+  if ( !(end_result.innerNode() && end_result.innerNode()->renderer())) return;
+
+  RenderObject* end_renderer = end_result.innerNode()->renderer();
+  VisiblePosition endPosition(end_renderer->positionForPoint(end_result.localPoint()));
+  startWord = startOfWord(endPosition);
+  endWord = endOfWord(endPosition);
+  if (endPosition != startWord && endPosition!= endWord ) endPosition = endOfWord(endPosition);
+
+  m_lastMouseStart = start;
+  m_lastMouseEnd = end;
+      
+  // find the right target frame
+  Frame *start_frame, *end_frame;
+  if (start_result.innerNonSharedNode())
+    start_frame = start_result.innerNonSharedNode()->document()->frame();
+  else
+    start_frame = m_page->focusController()->focusedOrMainFrame();
+
+  if (end_result.innerNonSharedNode())
+    end_frame = end_result.innerNonSharedNode()->document()->frame();
+  else
+    end_frame = m_page->focusController()->focusedOrMainFrame();
+
+  if  ( (start_frame != m_selectFrame ) ||
+	(end_frame != m_selectFrame ) ) return;
+
+  SelectionController* sc = m_selectFrame->selection();
+
+  // is current startPosition and endPosition in the same paragraph? 
+  bool inParagraph = inSameParagraph(startPosition, endPosition);
+  if ( inParagraph )
+  {
+    // if not in paragraph previously but now in same paragraph, we need to 
+    // set the selection color so let webkit render the selection background
+    if ( ! m_selectionInParagraph )
+    {
+      setSelectionColors(0x801e90ff, 0xb0000000, /*Color::black,*/ 0x80c8c8c8, 0xb0323232);
+      m_selectionInParagraph = inParagraph;
+    }
+
+    // new Selection, need to retrieve the start/end Rect for it
+    IntPoint startPoint;
+    IntPoint endPoint;
+    getSelectionStartEndPoint(startPoint, endPoint);
+
+    IntRect contentRect = mainFrameImpl()->frameView()->visibleContentRect(false);
+    if (contentRect.contains(startPoint)) m_startPoint = startPoint;
+    if (contentRect.contains(endPoint)) m_endPoint = endPoint;
+  }
+  else
+  {
+    // if currently in the same paragraph but not previously
+    // set the selection background as transparent and we will draw the shade by ourselves
+    if ( m_selectionInParagraph )
+    {
+      setSelectionColors(0x001e90ff, Color::black, 0x00c8c8c8, 0xff323232);
+      m_selectionInParagraph = inParagraph;
+    }
+
+    m_startPoint = start;
+    m_endPoint = end;
+  }
+
+  // set the selection and mark the stage as modifying because user is moving mouse
+  // to change the selection
+  // wait for the user to release mouse so we will commit the selection
+  VisibleSelection sel(startPosition, endPosition);
+  sc->setSelection(sel);
+  m_selectionStage = Modifying;
+  // draw the new start/end handlers
+  invalidateSelectionHandler(m_selectFrame->view()->contentsToWindow(m_startPoint));
+  invalidateSelectionHandler(m_selectFrame->view()->contentsToWindow(m_endPoint));
+}
+
+
+/*
+ * in window coordiante, user is moving the mouse to change the selection
+ */
 void WebViewImpl::setSelectionRange(const WebPoint start, const WebPoint end, bool set)
 {
   if (!set)
@@ -1360,62 +1502,18 @@ void WebViewImpl::setSelectionRange(const WebPoint start, const WebPoint end, bo
     }
     m_startPoint = IntPoint();
     m_endPoint = IntPoint();
+
+    setSelectionColors(0x801e90ff, 0xb0000000, /*Color::black,*/ 0x80c8c8c8, 0xb0323232);
   }
   else
   {
     IntPoint start_point(start.x, start.y);
     start_point = m_page->mainFrame()->view()->windowToContents(start_point);
-    HitTestResult start_result(m_page->mainFrame()->eventHandler()->hitTestResultAtPoint(start_point, false));
-    if ( !(start_result.innerNode() && start_result.innerNode()->renderer() )) return;
-
-    RenderObject* start_renderer = start_result.innerNode()->renderer();
-    VisiblePosition start(start_renderer->positionForPoint(start_result.localPoint()));
-    VisiblePosition startWord  = startOfWord(start);
-    VisiblePosition endWord = endOfWord(start);
-    if (start != startWord && start != endWord ) start = startWord;
 
     IntPoint end_point(end.x, end.y);
     end_point = m_page->mainFrame()->view()->windowToContents(end_point);
-    HitTestResult end_result(m_page->mainFrame()->eventHandler()->hitTestResultAtPoint(end_point, false));
-    if ( !(end_result.innerNode() && end_result.innerNode()->renderer())) return;
 
-    RenderObject* end_renderer = end_result.innerNode()->renderer();
-    VisiblePosition end(end_renderer->positionForPoint(end_result.localPoint()));
-    startWord = startOfWord(end);
-    endWord = endOfWord(end);
-    if (end != startWord && end!= endWord ) end = endOfWord(end);
-      
-  // find the right target frame
-    Frame *start_frame, *end_frame;
-    if (start_result.innerNonSharedNode())
-      start_frame = start_result.innerNonSharedNode()->document()->frame();
-    else
-      start_frame = m_page->focusController()->focusedOrMainFrame();
-
-    if (end_result.innerNonSharedNode())
-      end_frame = end_result.innerNonSharedNode()->document()->frame();
-    else
-      end_frame = m_page->focusController()->focusedOrMainFrame();
-
-    if  ( (start_frame != m_selectFrame ) ||
-          (end_frame != m_selectFrame ) ) return;
-
-    SelectionController* sc = m_selectFrame->selection();
-    VisibleSelection sel(start, end);
-    sc->setSelection(sel);
-
-    // new Selection, need to retrieve the start/end Rect for it
-    IntPoint startPoint;
-    IntPoint endPoint;
-    getSelectionStartEndPoint(startPoint, endPoint);
-
-    IntRect contentRect = mainFrameImpl()->frameView()->visibleContentRect(false);
-    if (contentRect.contains(startPoint)) m_startPoint = startPoint;
-    if (contentRect.contains(endPoint)) m_endPoint = endPoint;
-
-    // draw the new start/end handlers
-    invalidateSelectionHandler(m_selectFrame->view()->contentsToWindow(m_startPoint));
-    invalidateSelectionHandler(m_selectFrame->view()->contentsToWindow(m_endPoint));
+    selectRange(start_point, end_point);
   }
 
   // clear the old start/end handlers
@@ -1430,6 +1528,10 @@ void WebViewImpl::invalidateSelectionHandler(IntPoint pos)
   m_client->didInvalidateRect(damageRect);
 }
 
+/*
+ * get the position of the start/end handler
+ *
+ */
 void WebViewImpl::getSelectionStartEndPoint(IntPoint& startPoint, IntPoint& endPoint)
 {
   if (!m_selectFrame) return;
@@ -1437,53 +1539,73 @@ void WebViewImpl::getSelectionStartEndPoint(IntPoint& startPoint, IntPoint& endP
 
   if ( sc->selection().isNone()) return;
 
-  VisibleSelection selection = sc->selection();
+  // if the selection is cross paragraph, there are two cases:
+  // 1. the stage is modifying, which indicates that the user is moving his finger
+  //    so just draw start/end handler in where the mouse is 
+  // 2. the stage is committed, which indicates the user releases his finger
+  //    in this cases, we will select the bound of the selection and then the 
+  //    start/end position is the lefttop and rightbottom of the bound
+  if (!m_selectionInParagraph) {
+    if (m_selectionStage == Committed) {
+      FloatRect rc = sc->bounds(false);
+      IntRect ir = IntRect(rc);
+      startPoint = IntPoint(ir.x(), ir.y());
+      endPoint = IntPoint(ir.maxX(), ir.maxY());
+    }else if (m_selectionStage == Modifying ) {
+      startPoint = m_lastMouseStart;
+      endPoint = m_lastMouseEnd;
+    }
+  }else{
+    // if the selection is within the paragraph, we calculate the start/end position of
+    // the selection and draw handlers there
+    VisibleSelection selection = sc->selection();
 
-  int extraWidthToEndOfLine = 0;
+    int extraWidthToEndOfLine = 0;
 
-  Position startPosition;
-  Position endPosition; 
-  if (selection.isBaseFirst())
-  {
-    startPosition = sc->start();
-    endPosition = sc->end();
-  }  else
-  {
-    startPosition = sc->end();
-    endPosition = sc->start();
+    Position startPosition;
+    Position endPosition; 
+    if (selection.isBaseFirst())
+    {
+      startPosition = sc->start();
+      endPosition = sc->end();
+    }  else
+    {
+      startPosition = sc->end();
+      endPosition = sc->start();
+    }
+
+    if (startPosition.isNull() || endPosition.isNull() || startPosition == endPosition)
+      return;
+
+    InlineBox* startInlineBox;
+    InlineBox* endInlineBox;
+    int startCaretOffset, endCaretOffset;
+
+    startPosition.getInlineBoxAndOffset(DOWNSTREAM, startInlineBox, startCaretOffset);
+    endPosition.getInlineBoxAndOffset(UPSTREAM, endInlineBox, endCaretOffset);
+
+    RenderObject* startRenderer = startPosition.anchorNode()->renderer();
+    RenderObject* endRenderer = endPosition.anchorNode()->renderer();
+    ASSERT(startRenderer);
+    ASSERT(endRenderer);
+
+    IntRect startRect = startRenderer->localCaretRect(startInlineBox, startCaretOffset, &extraWidthToEndOfLine);
+    if (startRect != IntRect())
+      startRect = startRenderer->localToAbsoluteQuad(FloatRect(startRect)).enclosingBoundingBox();
+
+    IntRect endRect = endRenderer->localCaretRect(endInlineBox, endCaretOffset);
+    if (endRect != IntRect())
+      endRect = endRenderer->localToAbsoluteQuad(FloatRect(endRect)).enclosingBoundingBox();
+
+    IntPoint start, end;
+    if (startRect != endRect)
+    {
+      start = IntPoint(startRect.x(), startRect.y()+startRect.height()/2);
+      end = IntPoint(endRect.x(), endRect.y()+endRect.height()/2 );
+    }
+    startPoint = start;
+    endPoint = end;
   }
-
-  if (startPosition.isNull() || endPosition.isNull() || startPosition == endPosition)
-    return;
-
-  InlineBox* startInlineBox;
-  InlineBox* endInlineBox;
-  int startCaretOffset, endCaretOffset;
-
-  startPosition.getInlineBoxAndOffset(DOWNSTREAM, startInlineBox, startCaretOffset);
-  endPosition.getInlineBoxAndOffset(UPSTREAM, endInlineBox, endCaretOffset);
-
-  RenderObject* startRenderer = startPosition.anchorNode()->renderer();
-  RenderObject* endRenderer = endPosition.anchorNode()->renderer();
-  ASSERT(startRenderer);
-  ASSERT(endRenderer);
-
-  IntRect startRect = startRenderer->localCaretRect(startInlineBox, startCaretOffset, &extraWidthToEndOfLine);
-  if (startRect != IntRect())
-    startRect = startRenderer->localToAbsoluteQuad(FloatRect(startRect)).enclosingBoundingBox();
-
-  IntRect endRect = endRenderer->localCaretRect(endInlineBox, endCaretOffset);
-  if (endRect != IntRect())
-    endRect = endRenderer->localToAbsoluteQuad(FloatRect(endRect)).enclosingBoundingBox();
-
-  IntPoint start, end;
-  if (startRect != endRect)
-  {
-    start = IntPoint(startRect.x(), startRect.y()+startRect.height()/2);
-    end = IntPoint(endRect.x(), endRect.y()+endRect.height()/2 );
-  }
-  startPoint = start;
-  endPoint = end;
 }
 
 void WebViewImpl::drawFilledCircleAtPoint(WebCanvas* canvas, const WebCore::IntPoint pos, int radius, Color& color)
@@ -1496,6 +1618,37 @@ void WebViewImpl::drawFilledCircleAtPoint(WebCanvas* canvas, const WebCore::IntP
   gc.restore();
 
 }
+
+
+void WebViewImpl::drawSelectionShade(WebCanvas* canvas, const WebRect& rect)
+{
+  if (!m_selectFrame) return;
+  SelectionController* sc = m_selectFrame->selection();
+
+  if ( sc->selection().isNone()) return;
+
+  VisibleSelection selection = sc->selection();
+  RefPtr<Range> range = selection.firstRange();
+  FloatRect rc = sc->bounds(false);
+
+#if WEBKIT_USING_CG
+    GraphicsContext gc(canvas);
+    LocalCurrentGraphicsContext localContext(&gc);
+#elif WEBKIT_USING_SKIA
+    PlatformContextSkia context(canvas);
+
+    // PlatformGraphicsContext is actually a pointer to PlatformContextSkia
+    GraphicsContext gc(reinterpret_cast<PlatformGraphicsContext*>(&context));
+#else
+    notImplemented();
+#endif
+
+    IntRect mRings = m_selectFrame->view()->contentsToWindow(IntRect(rc));
+
+    Color color(0x1e, 0x90, 0xff, 0x80);
+    gc.fillRect(mRings, color,ColorSpaceDeviceRGB);
+}
+
 
 void WebViewImpl::drawSelectionHandle(WebCanvas* canvas, const WebRect& rect)
 {
