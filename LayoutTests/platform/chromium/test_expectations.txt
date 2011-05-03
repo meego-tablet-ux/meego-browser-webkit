@@ -821,10 +821,6 @@ BUGCR59675 BUGCR59263 SKIP : media/event-attributes.html = PASS FAIL TIMEOUT
 // These tests are flaky with subtle pixel differences.
 BUGCR60744 LINUX : media/video-layer-crash.html = IMAGE
 
-// These tests are failing because they use position-dependent mouse clicks.
-// might be hard to fix
-BUGCR25375 : media/video-controls-transformed.html = FAIL
-
 // We haven't implemented the WebKit fullscreen extension.
 // UNIMPLEMENTED
 BUGCR16735 SKIP : media/media-fullscreen-inline.html = TIMEOUT
@@ -2323,8 +2319,6 @@ BUGWK45737 DEBUG SLOW : fast/frames/frame-limit.html = PASS
 BUGDPRANKE WIN LINUX DEBUG : fast/forms/select-set-length-with-mutation-remove.html = TIMEOUT PASS
 BUGDPRANKE LINUX DEBUG : http/tests/incremental/slow-utf8-text.pl = TIMEOUT PASS
 
-BUGWEBGL : fast/canvas/webgl/css-webkit-canvas-repaint.html = IMAGE
-BUGWEBGL : fast/canvas/webgl/css-webkit-canvas.html = IMAGE
 BUGWEBGL WIN : fast/canvas/webgl/tex-image-and-sub-image-2d-with-array-buffer-view.html = CRASH PASS
 BUGWEBGL WIN DEBUG : fast/canvas/webgl/texture-complete.html = PASS TEXT
 BUGWEBGL : fast/canvas/webgl/read-pixels-test.html = TIMEOUT
@@ -2805,7 +2799,6 @@ BUGCR71022 MAC LEOPARD : fast/text/justify-ideograph-vertical.html = IMAGE
 BUGWK53347 WIN LINUX DEBUG : fast/repaint/4774354.html = PASS TIMEOUT
 
 BUGCR71418 MAC : fast/borders/border-radius-split-inline.html = IMAGE PASS
-BUGCR71418 MAC : fast/repaint/box-shadow-h.html = IMAGE PASS
 BUGCR71418 MAC : fast/repaint/box-shadow-v.html = IMAGE PASS
 BUGCR71418 MAC : fast/transforms/shadows.html = IMAGE PASS
 
@@ -2980,7 +2973,6 @@ BUGWK54322 MAC SNOWLEOPARD : fast/media/mq-transform-02.html = IMAGE+TEXT
 BUGWK54322 MAC SNOWLEOPARD : fast/media/mq-transform-03.html = IMAGE+TEXT
 BUGWK54322 MAC SNOWLEOPARD : fast/replaced/width100percent-textarea.html = IMAGE
 BUGWK54322 MAC SNOWLEOPARD : fast/speech/input-appearance-numberandspeech.html = IMAGE
-BUGWK54322 MAC SNOWLEOPARD : fast/speech/input-appearance-searchandspeech.html = IMAGE
 BUGWK54322 MAC SNOWLEOPARD : fast/text/international/pop-up-button-text-alignment-and-direction.html = IMAGE
 BUGWK54322 MAC SNOWLEOPARD : fast/text/international/text-combine-image-test.html = IMAGE
 BUGWK54322 MAC SNOWLEOPARD : fast/text/justify-nbsp.html = IMAGE
@@ -3266,7 +3258,6 @@ BUGWK50661 WIN LINUX : fast/forms/input-appearance-spinbutton-visibility.html = 
 BUGWK50661 MAC : fast/forms/input-appearance-spinbutton-visibility.html = IMAGE+TEXT PASS
 BUGWK50661 WIN LINUX : fast/speech/input-appearance-numberandspeech.html = TEXT PASS
 BUGWK50661 MAC LEOPARD : fast/speech/input-appearance-numberandspeech.html = IMAGE PASS
-BUGWK50661 WIN LINUX : fast/dom/HTMLMeterElement/meter-element.html = IMAGE+TEXT PASS
 BUGWK50661 WIN LINUX : fast/dom/HTMLMeterElement/meter-styles.html = IMAGE+TEXT PASS
 
 
@@ -3482,17 +3473,11 @@ BUGWK58619 GPU LINUX WIN : media/video-volume-slider.html = IMAGE
 BUGWK58741 LINUX : fast/text/zero-width-characters-complex-script.html = FAIL
 
 // Broken by skia shadow code change in r83936
-BUGWK58772 WIN LINUX : fast/multicol/shadow-breaking.html = IMAGE
 BUGWK58772 WIN : fast/repaint/shadow-multiple-horizontal.html = IMAGE
 BUGWK58772 WIN : fast/repaint/shadow-multiple-strict-horizontal.html = IMAGE
 BUGWK58772 WIN : fast/repaint/shadow-multiple-strict-vertical.html = IMAGE
 BUGWK58772 WIN : fast/repaint/shadow-multiple-vertical.html = IMAGE
-BUGWK58772 WIN : fast/text/shadow-translucent-fill.html = IMAGE
-BUGWK58772 WIN : fast/transforms/shadows.html = IMAGE
-BUGWK58772 WIN : svg/css/group-with-shadow.svg = IMAGE
-BUGWK58772 WIN : svg/css/shadow-changes.svg = IMAGE
 BUGWK58772 WIN : svg/css/text-shadow-multiple.xhtml = IMAGE
-BUGWK58772 WIN : transitions/svg-text-shadow-transition.html = IMAGE
 BUGWK58772 WIN LINUX : svg/css/composite-shadow-text.svg = IMAGE
 
 // May just need to be re-baselined
@@ -3701,9 +3686,6 @@ BUGCR74826 : media/controls-strict.html = TEXT
 BUGCR74826 : media/controls-styling.html = TEXT
 BUGCR74826 : media/controls-without-preload.html = TEXT
 
-// probably just needs a new baseline
-BUGDPRANKE WIN LINUX : fast/backgrounds/background-leakage-transforms.html = IMAGE+TEXT
-
 // figure out why this is slow.
 BUGDPRANKE SLOW : fast/css/visited-link-hang.html = PASS
 
@@ -3712,7 +3694,6 @@ BUGDPRANKE LINUX : fast/canvas/webgl/css-webkit-canvas-repaint.html = IMAGE
 BUGDPRANKE LINUX : fast/canvas/webgl/css-webkit-canvas.html = IMAGE
 BUGDPRANKE MAC LINUX : transitions/interrupt-zero-duration.html = TEXT PASS
 BUGDPRANKE : media/controls-css-overload.html = TIMEOUT PASS
-BUGDPRANKE WIN LINUX : fast/borders/bidi-012.html = IMAGE+TEXT
 BUGDPRANKE MAC LEOPARD : fast/borders/bidi-012.html = IMAGE
 BUGDPRANKE WIN LINUX : animations/change-one-anim.html = TEXT PASS
 
@@ -3753,12 +3734,6 @@ BUGDPRANKE WIN : http/tests/mime/standard-mode-does-not-load-stylesheet-with-tex
 BUGDPRANKE MAC DEBUG : fast/css/only-of-type-pseudo-class.html = TEXT PASS
 BUGDPRANKE LINUX DEBUG : fullscreen/full-screen-iframe-allowed.html = TEXT PASS
 BUGDPRANKE LINUX DEBUG : jquery/deferred.html = TEXT PASS
-
-// Introduced in r84443
-BUGWK59063 : fast/images/animated-gif-restored-from-bfcache.html = TEXT
-
-// Introduced in r84454
-BUGDPRANKE : fast/transforms/selection-bounds-in-transformed-view.html = TEXT
 
 // Introduced in r84457
 BUGDPRANKE : http/tests/security/contentSecurityPolicy/image-allowed.html = TEXT PASS
@@ -3854,9 +3829,7 @@ BUGCR80301 MAC LEOPARD : fast/canvas/canvas-largedraws.html = TIMEOUT
 
 // roll up from r84685:r84721??
 BUGDPRANKE : fast/dom/dataset-gc.html = TEXT
-BUGDPRANKE WIN LINUX : fast/backgrounds/gradient-background-leakage.html = IMAGE
 BUGDPRANKE : fast/forms/validation-message-appearance.html = IMAGE
-BUGDPRANKE : fast/multicol/shadow-breaking.html = IMAGE
 BUGDPRANKE WIN : fast/text/shadow-translucent-fill.html = IMAGE
 BUGDPRANKE WIN : fast/transforms/shadows.html = IMAGE
 BUGDPRANKE WIN : svg/css/group-with-shadow.svg = IMAGE
@@ -3874,8 +3847,6 @@ BUGDPRANKE WIN DEBUG : http/tests/navigation/ping-cross-origin-from-https.html =
 // broke in r84742 - just needs a new baseline?
 BUGDPRANKE : http/tests/misc/will-send-request-returns-null-on-redirect.html = TEXT
 
-// changed in r84745 (see commented-out entry above)
-BUGWK50661 WIN LINUX : fast/dom/HTMLMeterElement/meter-element.html = TEXT
 
 BUGDPRANKE GPU SLOW : compositing/tiling/huge-layer-img.html = PASS TEXT
 BUGDPRANKE GPU : media/video-aspect-ratio.html = IMAGE PASS
@@ -3884,9 +3855,7 @@ BUGSENORBLANCO WIN LINUX : animations/animation-drt-api-multiple-keyframes.html 
 BUGSENORBLANCO WIN LINUX : animations/animation-drt-api.html = TEXT
 BUGSENORBLANCO GPU MAC LEOPARD : compositing/direct-image-compositing.html = IMAGE CRASH
 BUGSENORBLANCO MAC LINUX : fast/css/string-quote-binary.html = CRASH PASS
-BUGSENORBLANCO LINUX : fast/events/panScroll-click-hyperlink.html = TEXT
 BUGSENORBLANCO : fast/files/domurl-script-execution-context-crash.html = CRASH PASS
-BUGSENORBLANCO : fast/loader/file-protocol-fragment.html = TEXT
 BUGSENORBLANCO : fast/filesystem/file-writer-write-overlapped.html = CRASH PASS TEXT
 BUGSENORBLANCO : editing/selection/drag-select-rapidly.html = CRASH PASS
 BUGSENORBLANCO LINUX DEBUG : fast/css/transform-default-parameter.html = CRASH PASS
@@ -3921,7 +3890,6 @@ BUGNONE WONTFIX SKIP : platform/qt/fast/forms = PASS FAIL CRASH TIMEOUT
 // rebaselines introduced by r85013
 BUGDPRANKE SNOWLEOPARD : fast/speech/input-appearance-speechbutton.html = IMAGE+TEXT PASS
 BUGDPRANKE MAC SNOWLEOPARD : fast/speech/input-appearance-searchandspeech.html = IMAGE
-BUGDPRANKE LINUX : fast/speech/input-appearance-numberandspeech.html = IMAGE+TEXT PASS TEXT
 BUGDPRANKE LINUX : fast/speech/input-appearance-searchandspeech.html = IMAGE+TEXT PASS
 BUGDPRANKE LINUX : fast/speech/input-appearance-speechbutton.html = IMAGE+TEXT PASS
 BUGDPRANKE LINUX : fast/text/atsui-negative-spacing-features.html = IMAGE
@@ -3949,10 +3917,8 @@ BUGDPRANKE LINUX : svg/W3C-I18N/text-anchor-no-markup.svg = IMAGE
 BUGDPRANKE LINUX : svg/W3C-SVG-1.1-SE/text-intro-05-t.svg = IMAGE
 BUGDPRANKE LINUX : svg/text/text-intro-05-t.svg = IMAGE
 
-BUGWK59661 WIN LINUX MAC : media/video-controls-transformed.html = TEXT
 
 BUGDPRANKE MAC : fast/repaint/box-shadow-h.html = IMAGE
-BUGDPRANKE MAC : fast/block/float/float-overhangs-root.html = MISSING
 BUGDPRANKE MAC DEBUG : fast/blockflow/Kusa-Makura-background-canvas.html = CRASH
 BUGDPRANKE MAC DEBUG : storage/domstorage/events/documentURI.html = CRASH
 BUGDPRANKE MAC DEBUG : svg/W3C-SVG-1.1-SE/types-dom-04-b.svg = CRASH PASS
@@ -3980,7 +3946,6 @@ BUGDPRANKE SLOW LINUX WIN DEBUG : inspector/elements/edit-dom-actions.html = PAS
 
 BUGWK59673 : fast/dom/Window/get-set-properties.html = TEXT
 BUGWK59673 : fast/dom/Window/window-property-shadowing.html = TEXT
-BUGWK59673 : http/tests/history/cross-origin-replace-history-object-child.html = TIMEOUT
 
 // Crashiness on canaries (noted ~ r85140)
 BUGCR80745 DEBUG : editing/pasteboard/paste-event-only-once.html = PASS CRASH
@@ -3993,16 +3958,9 @@ BUGKBR WIN DEBUG : fast/events/change-overflow-on-overflow-change.html = PASS TI
 
 // Flakiness on canaries (noted ~ r85220)
 BUGKBR WIN : editing/input/option-page-up-down.html = PASS TEXT
-BUGKBR WIN LINUX : http/tests/inspector/resource-tree/resource-tree-frame-navigate.html = PASS TIMEOUT
 BUGCR80745 DEBUG: editing/pasteboard/paste-blockquote-into-blockquote-3.html = PASS CRASH
-BUGWK59726 : fast/dom/shadow/gc-shadow.html = PASS TEXT
-
-BUGDPRANKE : fast/css/epub-properties.html = TEXT
-BUGDPRANKE WIN : fast/harness/results.html = TEXT
 
 BUGDPRANKE WIN : http/tests/xmlviewer/dumpAsText/xmlviewer.xml = TEXT
-BUGDPRANKE WIN : svg/css/composite-shadow-text.svg = IMAGE
-BUGDPRANKE WIN : svg/css/shadow-changes.svg = IMAGE
 
 // Flakiness on canaries (noted ~ r85280)
 BUGDPRANKE WIN : inspector/console/console-clear.html = PASS TEXT
