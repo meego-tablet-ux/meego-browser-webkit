@@ -268,7 +268,7 @@ public:
       Modifying,
       Committed
     };
-	virtual void queryNodeTypeAtPoint(int x, int y, bool &is_embedded_object, bool &is_editable_text);
+	virtual void queryNodeTypeAtPoint(int x, int y, bool &is_embedded_object, bool &is_editable_text, bool &has_touch_listener);
 	virtual void drawLinkTapHighlight(WebCanvas* canvas, const WebRect& rect); 
 
 	virtual void drawSelectionHandle(WebCanvas* canvas, const WebRect& rect);

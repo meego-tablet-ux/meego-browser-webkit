@@ -906,10 +906,11 @@ bool WebViewImpl::touchEvent(const WebTouchEvent& event)
 #endif
 
 #if defined(TOOLKIT_MEEGOTOUCH)
-void WebViewImpl::queryNodeTypeAtPoint(int x, int y, bool &is_embedded_object, bool &is_editable_text)
+void WebViewImpl::queryNodeTypeAtPoint(int x, int y, bool &is_embedded_object, bool &is_editable_text, bool &has_touch_listener)
 {
     is_embedded_object = false;
     is_editable_text = false;
+    has_touch_listener = false;
 
     if (!mainFrameImpl() || !mainFrameImpl()->frameView())
         return;
@@ -927,6 +928,15 @@ void WebViewImpl::queryNodeTypeAtPoint(int x, int y, bool &is_embedded_object, b
         is_editable_text = result.isContentEditable();
         if (hitNode->renderer())
             is_embedded_object = hitNode->renderer()->isEmbeddedObject();
+        // the node is considered as touch-aware node if it listens to any one of
+        // below events
+        if (!hitNode->isDocumentNode() && 
+            (hitNode->hasEventListeners("touchstart") ||
+            hitNode->hasEventListeners("touchend") ||
+            hitNode->hasEventListeners("touchmove") ||
+            hitNode->hasEventListeners("touchcancel"))) {
+          has_touch_listener = true;
+        }
     }
 }
 #endif
