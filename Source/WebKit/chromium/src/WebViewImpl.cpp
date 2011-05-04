@@ -1161,13 +1161,14 @@ void WebViewImpl::setViewportSize(const WebSize& size)
 //    return;
 
   m_viewportSize = size;
+  m_size = size;
   
   WebFrameImpl* webframe = mainFrameImpl();
   if (webframe) {
     FrameView* view = webframe->frameView();
     if (view)
     {
-      view->setFrameRect(IntRect(0, 0, m_viewportSize.width, m_viewportSize.height));
+      view->resize(m_viewportSize.width, m_viewportSize.height);
       view->adjustViewSize();
     }
   }
@@ -1179,6 +1180,8 @@ void WebViewImpl::setPreferredContentsSize(const WebSize& newSize)
   
   if (mainFrameImpl()->frameView()) {
     mainFrameImpl()->frameView()->setUseFixedLayout(true);
+    mainFrameImpl()->frameView()->setPaintsEntireContents(true);
+    mainFrameImpl()->frameView()->setDelegatesScrolling(true);
     mainFrameImpl()->frameView()->setFixedLayoutSize(m_preferredContentsSize);
     mainFrameImpl()->frameView()->forceLayout();
   }  
@@ -1192,7 +1195,6 @@ void WebViewImpl::resize(const WebSize& newSize)
     m_size = newSize;
 
     if (mainFrameImpl()->frameView()) {
-      mainFrameImpl()->frameView()->setUseFixedLayout(false);
       mainFrameImpl()->frameView()->resize(m_size.width, m_size.height);
       mainFrameImpl()->frame()->eventHandler()->sendResizeEvent();
 
