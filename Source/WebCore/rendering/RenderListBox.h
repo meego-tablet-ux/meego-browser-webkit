@@ -36,7 +36,7 @@
 
 namespace WebCore {
 
-class RenderListBox : public RenderBlock, private ScrollableArea {
+class RenderListBox : public RenderBlock, public ScrollableArea {
 public:
     RenderListBox(Element*);
     virtual ~RenderListBox();
@@ -55,10 +55,13 @@ public:
 
     int size() const;
 
+    // for scrollable area detection
+    virtual bool isListBox() const { return true; }
+    virtual IntSize contentsSize() const;
+    virtual int visibleHeight() const;
+    virtual int visibleWidth() const;    
 private:
     virtual const char* renderName() const { return "RenderListBox"; }
-
-    virtual bool isListBox() const { return true; }
 
     virtual void updateFromElement();
 
@@ -112,9 +115,6 @@ private:
     virtual IntPoint convertFromScrollbarToContainingView(const Scrollbar*, const IntPoint&) const;
     virtual IntPoint convertFromContainingViewToScrollbar(const Scrollbar*, const IntPoint&) const;
     virtual Scrollbar* verticalScrollbar() const { return m_vBar.get(); }
-    virtual IntSize contentsSize() const;
-    virtual int visibleHeight() const;
-    virtual int visibleWidth() const;
     virtual IntPoint currentMousePosition() const;
     virtual bool shouldSuspendScrollAnimations() const;
 

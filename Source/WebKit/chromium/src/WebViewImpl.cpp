@@ -127,6 +127,7 @@
 #include <wtf/ByteArray.h>
 #include <wtf/CurrentTime.h>
 #include <wtf/RefPtr.h>
+#include "RenderListBox.h"
 
 #include "visible_units.h"
 
@@ -906,12 +907,26 @@ bool WebViewImpl::touchEvent(const WebTouchEvent& event)
 #endif
 
 #if defined(TOOLKIT_MEEGOTOUCH)
-void WebViewImpl::queryNodeTypeAtPoint(int x, int y, bool &is_embedded_object, bool &is_editable_text, bool &has_touch_listener)
+static RenderLayer* layerForNode(Node* node)
 {
-    is_embedded_object = false;
-    is_editable_text = false;
-    has_touch_listener = false;
+    if (!node)
+        return 0;
 
+    RenderObject* renderer = node->renderer();
+    if (!renderer)
+        return 0;
+
+    RenderLayer* layer = renderer->enclosingLayer();
+    if (!layer)
+        return 0;
+
+    return layer;
+}
+
+void WebViewImpl::queryNodeTypeAtPoint(int x, int y, unsigned int& node_info)
+{
+    node_info = NODE_INFO_NONE;
+    
     if (!mainFrameImpl() || !mainFrameImpl()->frameView())
         return;
 
@@ -921,13 +936,22 @@ void WebViewImpl::queryNodeTypeAtPoint(int x, int y, bool &is_embedded_object, b
 
     IntPoint point(x, y);
     point = m_page->mainFrame()->view()->windowToContents(point);
-    HitTestResult result(m_page->mainFrame()->eventHandler()->hitTestResultAtPoint(point, false));
+    HitTestResult result(m_page->mainFrame()->eventHandler()->hitTestResultAtPoint(point, false, false, ShouldHitTestScrollbars));
+
     Node* hitNode = result.innerNonSharedNode();
 
     if (hitNode) {
-        is_editable_text = result.isContentEditable();
+        if (result.isContentEditable())
+        {
+            node_info |= NODE_INFO_IS_EDITABLE;
+        }
         if (hitNode->renderer())
-            is_embedded_object = hitNode->renderer()->isEmbeddedObject();
+        {
+          if (hitNode->renderer()->isEmbeddedObject())
+          {
+            node_info |= NODE_INFO_IS_EMBEDDED_OBJECT;
+          }
+        }
         // the node is considered as touch-aware node if it listens to any one of
         // below events
         if (!hitNode->isDocumentNode() && 
@@ -935,7 +959,33 @@ void WebViewImpl::queryNodeTypeAtPoint(int x, int y, bool &is_embedded_object, b
             hitNode->hasEventListeners("touchend") ||
             hitNode->hasEventListeners("touchmove") ||
             hitNode->hasEventListeners("touchcancel"))) {
-          has_touch_listener = true;
+          node_info |= NODE_INFO_HAS_TOUCH_LISTENER;
+        }
+
+        // test scrollable area
+        RenderLayer* layer = layerForNode(hitNode);
+        if (layer && (layer->horizontalScrollbar() ||
+                      layer->verticalScrollbar()))
+        {
+          node_info |= NODE_INFO_IS_SCROLLABLE_AREA;
+        }
+
+        RenderObject* renderer = hitNode->renderer();
+        FrameView* view = renderer->frame()->view();
+        if (view && ((view->contentsWidth() > view->visibleWidth()) ||
+                     (view->contentsHeight() > view->visibleHeight())))
+        {
+          node_info |= NODE_INFO_IS_SCROLLABLE_AREA;
+        }
+
+        if (renderer->isListBox())
+        {
+          RenderListBox* box = static_cast<RenderListBox*>(renderer);
+          if (box && ((box->contentsSize().width() > box->visibleWidth()) ||
+                      (box->contentsSize().height() > box->visibleHeight())))
+          {
+            node_info |= NODE_INFO_IS_SCROLLABLE_AREA;
+          }
         }
     }
 }

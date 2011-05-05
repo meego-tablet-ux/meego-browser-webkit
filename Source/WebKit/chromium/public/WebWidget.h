@@ -147,7 +147,15 @@ public:
     virtual bool isAcceleratedCompositingActive() const = 0;
 
 #if defined(TOOLKIT_MEEGOTOUCH)
-    virtual void queryNodeTypeAtPoint(int x, int y, bool &is_embedded_object, bool &is_editable_text, bool &has_touch_listener) {};
+    enum NodeInfo {
+      NODE_INFO_NONE = 0x00,
+      NODE_INFO_IS_EMBEDDED_OBJECT = 0x01,
+      NODE_INFO_IS_EDITABLE = 0x01 << 1,
+      NODE_INFO_HAS_TOUCH_LISTENER = 0x01 << 2,
+      NODE_INFO_IS_SCROLLABLE_AREA = 0x01 << 3
+    };
+
+    virtual void queryNodeTypeAtPoint(int x, int y, unsigned int& node_info) {};
     virtual void zoom2TextPre(int x, int y) {};
     virtual void zoom2TextPost() {};
     static void setUseExternalPopupMenus(bool);
