@@ -3833,7 +3833,6 @@ BUGDPRANKE : fast/forms/validation-message-appearance.html = IMAGE
 BUGDPRANKE WIN : fast/text/shadow-translucent-fill.html = IMAGE
 BUGDPRANKE WIN : fast/transforms/shadows.html = IMAGE
 BUGDPRANKE WIN : svg/css/group-with-shadow.svg = IMAGE
-BUGDPRANKE WIN : svg/css/text-shadow-multiple.xhtml = IMAGE
 BUGDPRANKE WIN : transitions/svg-text-shadow-transition.html = IMAGE
 
 // flakiness on deps bots from r84685:r84721??
