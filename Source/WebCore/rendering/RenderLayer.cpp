@@ -1455,7 +1455,7 @@ void RenderLayer::scrollRectToVisible(const IntRect& rect, bool scrollToAnchor, 
     } else if (!parentLayer && renderer()->isBox() && renderBox()->canBeProgramaticallyScrolled(scrollToAnchor)) {
         if (frameView) {
             if (renderer()->document() && renderer()->document()->ownerElement() && renderer()->document()->ownerElement()->renderer()) {
-                IntRect viewRect = frameView->visibleContentRect();
+                IntRect viewRect = frameView->actualVisibleContentRect();
                 IntRect r = getRectToExpose(viewRect, rect, alignX, alignY);
                 
                 xOffset = r.x();
@@ -1469,11 +1469,16 @@ void RenderLayer::scrollRectToVisible(const IntRect& rect, bool scrollToAnchor, 
                 newRect.setX(rect.x() - frameView->scrollX() + frameView->x());
                 newRect.setY(rect.y() - frameView->scrollY() + frameView->y());
             } else {
-                IntRect viewRect = frameView->visibleContentRect();
+                IntRect viewRect = frameView->actualVisibleContentRect();
                 IntRect r = getRectToExpose(viewRect, rect, alignX, alignY);
-                
-                //frameView->setScrollPosition(r.location());
-                frameView->setScrollPosition(rect.location());
+
+                xOffset = r.x();
+                yOffset = r.y();
+                // Adjust offsets if they're outside of the allowable range.
+                xOffset = max(0, min(frameView->contentsWidth(), xOffset));
+                yOffset = max(0, min(frameView->contentsHeight(), yOffset));
+
+                frameView->setScrollPosition(IntPoint(xOffset, yOffset));
 
                 // This is the outermost view of a web page, so after scrolling this view we
                 // scroll its container by calling Page::scrollRectIntoView.

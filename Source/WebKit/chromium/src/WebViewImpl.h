@@ -97,6 +97,7 @@ public:
     virtual WebSize preferredContentsSize() { return m_preferredContentsSize;}
     virtual void setViewportSize(const WebSize&);
     virtual WebSize viewportSize() { return m_viewportSize;}
+    virtual void setActualVisibleContentRect(const WebRect& actualVisibleContentRect);
     virtual void animate();
     virtual void layout();
     virtual void paint(WebCanvas*, const WebRect&);

@@ -1205,6 +1205,18 @@ void WebViewImpl::close()
     deref();  // Balances ref() acquired in WebView::create
 }
 
+void WebViewImpl::setActualVisibleContentRect(const WebRect& actualVisibleContentRect)
+{
+  WebFrameImpl* webframe = mainFrameImpl();
+  if (webframe) {
+    FrameView* view = webframe->frameView();
+    if (view)
+    {   
+      view->setActualVisibleContentRect(actualVisibleContentRect);
+    }
+  }
+}
+
 void WebViewImpl::setViewportSize(const WebSize& size)
 {
 //  if (m_viewportSize == size)
@@ -3289,7 +3301,8 @@ void WebViewImpl::zoom2TextPost()
     }
 #else
     // In tiling mode, should set the position in browser flickable
-    m_client->scrollRectToVisible(bounds);
+    IntPoint dest(bounds.x(), bounds.y());
+    m_client->didSetScrollPosition(dest);
 #endif
 }
 

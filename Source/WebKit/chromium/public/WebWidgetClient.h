@@ -34,6 +34,7 @@
 #include "WebCommon.h"
 #include "WebNavigationPolicy.h"
 #include "WebRect.h"
+#include "WebPoint.h"
 #include "WebScreenInfo.h"
 
 namespace WebKit {
@@ -50,7 +51,7 @@ public:
     virtual void didInvalidateRect(const WebRect&) { }
 
     // Called when scroll a rect to visible
-    virtual void scrollRectToVisible(const WebRect&) {}
+    virtual void didSetScrollPosition(const WebPoint&) {}
     
     // Called when a region of the WebWidget, given by clipRect, should be
     // scrolled by the specified dx and dy amounts.

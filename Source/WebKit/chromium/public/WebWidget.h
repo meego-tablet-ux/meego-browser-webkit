@@ -69,6 +69,9 @@ public:
     virtual void setViewportSize(const WebSize&) = 0;
     virtual WebSize viewportSize() = 0;
 
+    // set actual contents rect
+    virtual void setActualVisibleContentRect(const WebRect& actualVisibleContentRect) {}
+    
     // Called to layout the WebWidget.  This MUST be called before Paint,
     // and it may result in calls to WebWidgetClient::didInvalidateRect.
     virtual void layout() = 0;

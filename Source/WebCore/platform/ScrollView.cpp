@@ -382,14 +382,14 @@ void ScrollView::setScrollPosition(const IntPoint& scrollPoint)
         return;
     }
 
-#if ENABLE(TILED_BACKING_STORE)
+    //#if ENABLE(TILED_BACKING_STORE)
     if (delegatesScrolling()) {
         hostWindow()->delegatedScrollRequested(scrollPoint);
         if (!m_actualVisibleContentRect.isEmpty())
             m_actualVisibleContentRect.setLocation(scrollPoint);
         return;
     }
-#endif
+    //#endif
 
     IntPoint newScrollPosition = adjustScrollPositionWithinRange(scrollPoint);
 

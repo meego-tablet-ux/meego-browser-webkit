@@ -544,6 +544,11 @@ void ChromeClientImpl::scheduleAnimation()
 }
 #endif
 
+void ChromeClientImpl::delegatedScrollRequested(const IntPoint& pos)
+{
+  m_webView->client()->didSetScrollPosition(pos);
+}
+
 void ChromeClientImpl::scroll(
     const IntSize& scrollDelta, const IntRect& scrollRect,
     const IntRect& clipRect)
@@ -552,16 +557,11 @@ void ChromeClientImpl::scroll(
 #if USE(ACCELERATED_COMPOSITING)
     if (!m_webView->isAcceleratedCompositingActive()) {
 #endif
-        if (m_webView->client()) {
-#if 1
-            int dx = scrollDelta.width();
-            int dy = scrollDelta.height();
-            m_webView->client()->didScrollRect(dx, dy, clipRect);
-#else
-            //Hack to scroll flickable
-            m_webView->client()->scrollRectToVisible(scrollRect);
-#endif
-        }
+      if (m_webView->client()) {
+        int dx = scrollDelta.width();
+        int dy = scrollDelta.height();
+        m_webView->client()->didScrollRect(dx, dy, clipRect);
+      }
 #if USE(ACCELERATED_COMPOSITING)
     } else
         m_webView->scrollRootLayerRect(scrollDelta, clipRect);
