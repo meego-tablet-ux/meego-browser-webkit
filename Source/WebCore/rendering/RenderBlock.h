@@ -95,6 +95,7 @@ public:
     bool generatesLineBoxesForInlineChild(RenderObject*, bool isLineEmpty = true, bool previousLineBrokeCleanly = true);
 
     void markAllDescendantsWithFloatsForLayout(RenderBox* floatToRemove = 0, bool inLayout = true);
+    void markSiblingsWithFloatsForLayout();
     void markPositionedObjectsForLayout();
     virtual void markForPaginationRelayoutIfNeeded();
     
@@ -790,6 +791,10 @@ private:
     // (calling moveChildTo, moveAllChildrenTo, and makeChildrenNonInline).
     friend class RenderRubyBase;
     friend class LineWidth; // Needs to know FloatingObject
+
+private:
+    // Used to store state between styleWillChange and styleDidChange
+    static bool s_canPropagateFloatIntoSibling;
 };
 
 inline RenderBlock* toRenderBlock(RenderObject* object)
