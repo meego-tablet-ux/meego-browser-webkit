@@ -36,6 +36,7 @@
 #include "WebCompositionUnderline.h"
 #include "WebTextInputType.h"
 #include "WebTextDirection.h"
+#include "WebRect.h"
 
 namespace WebKit {
 
@@ -165,6 +166,7 @@ public:
     virtual void queryEditorCursorPosition(int& cursor_position) {};
     virtual void queryEditorCurrentSelection(WebString& selection) {};
     virtual void queryEditorSurroundingText(WebString& surrounding_text) {};
+    virtual WebRect queryElementAreaAt(int x, int y, int max_width, int max_height){ return WebRect(); };
 #endif
 
 protected:

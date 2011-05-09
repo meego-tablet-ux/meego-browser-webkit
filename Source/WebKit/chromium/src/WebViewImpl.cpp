@@ -130,6 +130,7 @@
 #include "RenderListBox.h"
 
 #include "visible_units.h"
+#include "htmlediting.h"
 
 #if USE(CG)
 #include <CoreGraphics/CGBitmapContext.h>
@@ -988,6 +989,40 @@ void WebViewImpl::queryNodeTypeAtPoint(int x, int y, unsigned int& node_info)
           }
         }
     }
+}
+
+WebRect WebViewImpl::queryElementAreaAt(int x, int y,int max_width, int max_height)
+{
+  IntRect rect;
+
+  IntPoint pos = m_page->mainFrame()->view()->windowToContents(IntPoint(x, y));
+  HitTestResult result(m_page->mainFrame()->eventHandler()->hitTestResultAtPoint(pos, false, true));
+
+  WebCore::Node* innerNode = result.innerNode();
+  WebCore::Node* innerNonSharedNode = result.innerNonSharedNode();
+
+  Frame* result_frame = innerNonSharedNode ? innerNonSharedNode->document()->frame():0;
+  rect = innerNonSharedNode ? innerNonSharedNode->getRect(): IntRect();
+
+  WebCore::Node* node = WebCore::enclosingBlock(innerNode);
+  if(node && node->isHTMLElement()) 
+  {
+    WebCore::Element* element = static_cast<HTMLElement*>(node);
+    while(element->parentElement() 
+        && element->getRect().width() <= max_width
+        && element->getRect().height() <= max_height)
+    {
+      rect = element->getRect();
+      element = element->parentElement();
+    }
+  }
+
+  // Covert the result rect to window from subframe
+  if(result_frame && result_frame->view()) {
+    rect = result_frame->view()->contentsToWindow(rect);
+  }
+
+  return WebRect(rect.x(), rect.y(), rect.width(), rect.height());
 }
 #endif
 

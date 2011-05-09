@@ -297,6 +297,7 @@ public:
   virtual void queryEditorCursorPosition(int& cursor_position);
   virtual void queryEditorCurrentSelection(WebString& selection);
   virtual void queryEditorSurroundingText(WebString& surrounding_text);
+  virtual WebRect queryElementAreaAt(int x, int y,int max_width, int max_height);
 
 	WebCore::Node* m_zoom2textHitNode;
 #endif
