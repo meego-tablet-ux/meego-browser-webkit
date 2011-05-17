@@ -1,11 +1,3 @@
-2011-04-22  Ojan Vafai  <ojan@chromium.org>
-
-        Not reviewed: fixing flaky snow XMLViewer test on snow leopard.
-
-        * http/tests/xmlviewer/dumpAsText/frames.html:
-
-2011-03-01  Ryosuke Niwa  <rniwa@webkit.org>
-
         Unreviewed Windows rebaseline. The bug 55451 tracks this rebaseline.
 
         * platform/win/fast/forms/select-listbox-multiple-no-focusring-expected.txt: Added.
