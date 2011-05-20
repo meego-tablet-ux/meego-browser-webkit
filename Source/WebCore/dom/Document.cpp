@@ -4370,10 +4370,14 @@ unsigned FormElementKeyHash::hash(const FormElementKey& key)
 void Document::setIconURL(const String& iconURL, const String& type)
 {
     // FIXME - <rdar://problem/4727645> - At some point in the future, we might actually honor the "type" 
+#if defined(TOOLKIT_MEEGOTOUCH)
+    m_iconURL = iconURL;
+#else
     if (m_iconURL.isEmpty())
         m_iconURL = iconURL;
     else if (!type.isEmpty())
         m_iconURL = iconURL;
+#endif
     if (Frame* f = frame())
         f->loader()->setIconURL(m_iconURL);
 }

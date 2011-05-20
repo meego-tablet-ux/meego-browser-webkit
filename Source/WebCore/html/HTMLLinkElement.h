@@ -46,6 +46,9 @@ public:
         bool m_isLinkPrefetch;
         bool m_isLinkSubresource;
 #endif
+#if defined(TOOLKIT_MEEGOTOUCH)
+        bool m_isAppleIcon;
+#endif
 
         RelAttribute()
             : m_isStyleSheet(false)
@@ -56,10 +59,17 @@ public:
             , m_isLinkPrefetch(false)
             , m_isLinkSubresource(false)
 #endif
+#if defined(TOOLKIT_MEEGOTOUCH)
+            , m_isAppleIcon(false)
+#endif
             { 
             }
     };
-
+#if defined(TOOLKIT_MEEGOTOUCH)
+    static bool m_hasAppleIcon;
+    static void set_hasAppleIcon(bool isApple) { m_hasAppleIcon = isApple; }
+    static bool get_hasAppleIcon( ) { return m_hasAppleIcon; }
+#endif
     static PassRefPtr<HTMLLinkElement> create(const QualifiedName&, Document*, bool createdByParser);
     virtual ~HTMLLinkElement();
 

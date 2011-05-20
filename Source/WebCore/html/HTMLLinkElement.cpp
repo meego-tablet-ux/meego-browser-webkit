@@ -23,7 +23,6 @@
 
 #include "config.h"
 #include "HTMLLinkElement.h"
-
 #include "Attribute.h"
 #include "CachedCSSStyleSheet.h"
 #include "CachedResource.h"
@@ -48,6 +47,10 @@
 namespace WebCore {
 
 using namespace HTMLNames;
+
+#if defined(TOOLKIT_MEEGOTOUCH)
+bool HTMLLinkElement::m_hasAppleIcon = false;
+#endif
 
 inline HTMLLinkElement::HTMLLinkElement(const QualifiedName& tagName, Document* document, bool createdByParser)
     : HTMLElement(tagName, document)
@@ -166,10 +169,19 @@ void HTMLLinkElement::tokenizeRelAttribute(const AtomicString& rel, RelAttribute
     relAttribute.m_isLinkPrefetch = false;
     relAttribute.m_isLinkSubresource = false;
 #endif
+#if defined(TOOLKIT_MEEGOTOUCH)
+    relAttribute.m_isAppleIcon = false;
+#endif
     if (equalIgnoringCase(rel, "stylesheet"))
         relAttribute.m_isStyleSheet = true;
     else if (equalIgnoringCase(rel, "icon") || equalIgnoringCase(rel, "shortcut icon"))
         relAttribute.m_isIcon = true;
+#if defined(TOOLKIT_MEEGOTOUCH)
+    else if (equalIgnoringCase(rel, "apple-touch-icon")){
+        relAttribute.m_isAppleIcon = true;
+        set_hasAppleIcon(true);
+    }
+#endif
     else if (equalIgnoringCase(rel, "dns-prefetch"))
         relAttribute.m_isDNSPrefetch = true;
     else if (equalIgnoringCase(rel, "alternate stylesheet") || equalIgnoringCase(rel, "stylesheet alternate")) {
@@ -221,11 +233,24 @@ void HTMLLinkElement::process()
 
     // IE extension: location of small icon for locationbar / bookmarks
     // We'll record this URL per document, even if we later only use it in top level frames
-    if (m_relAttribute.m_isIcon && m_url.isValid() && !m_url.isEmpty()) {
-        if (!checkBeforeLoadEvent()) 
+#if defined(TOOLKIT_MEEGOTOUCH)
+    if (m_relAttribute.m_isIcon && m_url.isValid() && !m_url.isEmpty() && !get_hasAppleIcon() ){
+#else
+    if (m_relAttribute.m_isIcon && m_url.isValid() && !m_url.isEmpty() ){
+#endif
+        if (!checkBeforeLoadEvent())
             return;
         document()->setIconURL(m_url.string(), type);
     }
+
+#if defined(TOOLKIT_MEEGOTOUCH)
+    if (m_relAttribute.m_isAppleIcon && m_url.isValid() && !m_url.isEmpty()){
+        if (!checkBeforeLoadEvent())
+            return;
+        document()->setIconURL(m_url.string(), type);
+    }
+#endif
+
 
     if (m_relAttribute.m_isDNSPrefetch) {
         Settings* settings = document()->settings();
