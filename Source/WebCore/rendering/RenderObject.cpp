@@ -1163,7 +1163,7 @@ void RenderObject::repaintUsingContainer(RenderBoxModelObject* repaintContainer,
         }
     }
     
-    if (v->usesCompositing() && layer()->isComposited()) {
+    if (v->usesCompositing()) {
         ASSERT(repaintContainer->hasLayer() && repaintContainer->layer()->isComposited());
         repaintContainer->layer()->setBackingNeedsRepaintInRect(r);
     }
