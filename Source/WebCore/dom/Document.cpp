@@ -1489,6 +1489,8 @@ bail_out:
     clearNeedsStyleRecalc();
     clearChildNeedsStyleRecalc();
     unscheduleStyleRecalc();
+
+    m_inStyleRecalc = false;
     
     // Pseudo element removal and similar may only work with these flags still set. Reset them after the style recalc.
     if (m_styleSelector) {
@@ -1504,7 +1506,6 @@ bail_out:
     }
     RenderWidget::resumeWidgetHierarchyUpdates();
     resumePostAttachCallbacks();
-    m_inStyleRecalc = false;
 
     // If we wanted to call implicitClose() during recalcStyle, do so now that we're finished.
     if (m_closeAfterStyleRecalc) {
