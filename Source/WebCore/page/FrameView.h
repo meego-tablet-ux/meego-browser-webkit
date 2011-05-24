@@ -271,6 +271,8 @@ public:
 
     virtual bool shouldSuspendScrollAnimations() const;
 
+    void scrollPositionChanged();
+
 protected:
     virtual bool scrollContentsFastPath(const IntSize& scrollDelta, const IntRect& rectToScroll, const IntRect& clipRect);
     virtual void scrollContentsSlowPath(const IntRect& updateRect);
@@ -334,7 +336,6 @@ private:
     bool updateWidgets();
     void updateWidget(RenderEmbeddedObject*);
     void scrollToAnchor();
-    void scrollPositionChanged();
 
     bool hasCustomScrollbars() const;
 

@@ -1146,7 +1146,7 @@ int DOMWindow::scrollX() const
 
     m_frame->document()->updateLayoutIgnorePendingStylesheets();
 
-    return static_cast<int>(view->scrollX() / m_frame->pageZoomFactor());
+    return static_cast<int>(view->actualVisibleContentRect().x() / m_frame->pageZoomFactor());
 }
 
 int DOMWindow::scrollY() const
@@ -1160,7 +1160,7 @@ int DOMWindow::scrollY() const
 
     m_frame->document()->updateLayoutIgnorePendingStylesheets();
 
-    return static_cast<int>(view->scrollY() / m_frame->pageZoomFactor());
+    return static_cast<int>(view->actualVisibleContentRect().y() / m_frame->pageZoomFactor());
 }
 
 bool DOMWindow::closed() const
