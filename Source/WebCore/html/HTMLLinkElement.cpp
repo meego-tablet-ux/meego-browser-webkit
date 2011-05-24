@@ -176,7 +176,8 @@ void HTMLLinkElement::tokenizeRelAttribute(const AtomicString& rel, RelAttribute
         relAttribute.m_isStyleSheet = true;
     else if (equalIgnoringCase(rel, "icon") || equalIgnoringCase(rel, "shortcut icon"))
         relAttribute.m_isIcon = true;
-#if defined(TOOLKIT_MEEGOTOUCH)
+//#if defined(TOOLKIT_MEEGOTOUCH)
+#if 0
     else if (equalIgnoringCase(rel, "apple-touch-icon")){
         relAttribute.m_isAppleIcon = true;
         set_hasAppleIcon(true);
