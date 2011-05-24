@@ -853,7 +853,7 @@ void XMLDocumentParser::endElementNs()
 
     exitText();
 
-    RefPtr<ContainerNode> n = m_currentNode;
+    RefPtr<Node> n = m_currentNode;
     n->finishParsingChildren();
 
     if (m_scriptingPermission == FragmentScriptingNotAllowed && n->isElementNode() && toScriptElement(static_cast<Element*>(n.get()))) {
