@@ -1095,7 +1095,7 @@ int DOMWindow::innerHeight() const
     if (!view)
         return 0;
     
-    return static_cast<int>(view->actualVisibleContentRect().height() / m_frame->pageZoomFactor());
+    return static_cast<int>(view->fixedLayoutSize().height() / m_frame->pageZoomFactor());
 }
 
 int DOMWindow::innerWidth() const
@@ -1107,7 +1107,7 @@ int DOMWindow::innerWidth() const
     if (!view)
         return 0;
 
-    return static_cast<int>(view->actualVisibleContentRect().width() / m_frame->pageZoomFactor());
+    return static_cast<int>(view->fixedLayoutSize().width() / m_frame->pageZoomFactor());
     
 }
 

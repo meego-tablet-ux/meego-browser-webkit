@@ -1273,15 +1273,16 @@ void WebViewImpl::setViewportSize(const WebSize& size)
 
 void WebViewImpl::setPreferredContentsSize(const WebSize& newSize)
 {
-  m_preferredContentsSize = newSize;
-  
+  m_preferredContentsSize = newSize; 
+
   if (mainFrameImpl()->frameView()) {
     mainFrameImpl()->frameView()->setUseFixedLayout(true);
     mainFrameImpl()->frameView()->setPaintsEntireContents(true);
     mainFrameImpl()->frameView()->setDelegatesScrolling(true);
     mainFrameImpl()->frameView()->setFixedLayoutSize(m_preferredContentsSize);
     mainFrameImpl()->frameView()->forceLayout();
-  }  
+    mainFrameImpl()->frame()->eventHandler()->sendResizeEvent();
+  }
 }
 
 

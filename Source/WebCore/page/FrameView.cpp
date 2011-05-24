@@ -1994,8 +1994,11 @@ void FrameView::performPostLayoutTasks()
         bool resized = !m_firstLayout && (currentSize != m_lastLayoutSize || currentZoomFactor != m_lastZoomFactor);
         m_lastLayoutSize = currentSize;
         m_lastZoomFactor = currentZoomFactor;
-        if (resized)
-            m_frame->eventHandler()->sendResizeEvent();
+
+        // In resize to contents case, only send resize event
+        // when container view size is changed
+        //if (resized)
+        //    m_frame->eventHandler()->sendResizeEvent();
     }
 }
 
