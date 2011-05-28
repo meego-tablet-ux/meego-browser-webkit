@@ -128,7 +128,6 @@
 #include <wtf/CurrentTime.h>
 #include <wtf/RefPtr.h>
 #include "RenderListBox.h"
-
 #include "visible_units.h"
 #include "htmlediting.h"
 
@@ -961,6 +960,31 @@ void WebViewImpl::queryNodeTypeAtPoint(int x, int y, unsigned int& node_info)
             hitNode->hasEventListeners("touchmove") ||
             hitNode->hasEventListeners("touchcancel"))) {
           node_info |= NODE_INFO_HAS_TOUCH_LISTENER;
+        }
+   
+        // Track complex-mouse event, such as double click, mouse move .etc 
+        Element * hitElement = hitNode->isElementNode()? static_cast<HTMLElement*>(hitNode): hitNode->parentElement();
+        while (hitElement) {
+          // the node is considered as double click aware node if it listens to dblclick events
+          if (hitElement->getEventListeners("dblclick").size() >= 1) {
+            node_info |= NODE_INFO_HAS_DOUBLECLICK_LISTENER;
+          }
+ 
+          // the node is considered as mouse move aware node if it listens to mouse move events
+          // some website need mousedown&mouseup to trigger mousemove event listener, such as Google map
+          if (hitElement->getEventListeners("mousedown").size() >= 1
+              && hitElement->getEventListeners("mouseup").size() >= 1) {
+            node_info |= NODE_INFO_HAS_MOUSEMOVE_LISTENER;
+          }
+          if (hitElement->getEventListeners("mousemove").size() >= 1) {
+            node_info |= NODE_INFO_HAS_MOUSEMOVE_LISTENER;
+          }
+
+          if ((node_info & NODE_INFO_HAS_DOUBLECLICK_LISTENER) 
+              && (node_info & NODE_INFO_HAS_DOUBLECLICK_LISTENER))
+            break;
+
+          hitElement = hitElement->parentElement();
         }
 
         // test scrollable area
