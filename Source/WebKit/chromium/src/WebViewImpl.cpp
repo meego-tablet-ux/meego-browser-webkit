@@ -930,6 +930,13 @@ void WebViewImpl::queryNodeTypeAtPoint(int x, int y, unsigned int& node_info)
     if (!mainFrameImpl() || !mainFrameImpl()->frameView())
         return;
 
+    // if the document has touch events listener, just all events will be converted
+    // to touch events and pass to webkit
+    if (m_page->mainFrame()->document() 
+        && m_page->mainFrame()->document()->hasListenerType(Document::TOUCH_LISTENER)) {
+      node_info |= NODE_INFO_HAS_TOUCH_LISTENER;
+    }
+
     m_lastMouseDownPoint = WebPoint(x, y);
 
     RefPtr<Node> clickedNode;
@@ -951,15 +958,6 @@ void WebViewImpl::queryNodeTypeAtPoint(int x, int y, unsigned int& node_info)
           {
             node_info |= NODE_INFO_IS_EMBEDDED_OBJECT;
           }
-        }
-        // the node is considered as touch-aware node if it listens to any one of
-        // below events
-        if (!hitNode->isDocumentNode() && 
-            (hitNode->hasEventListeners("touchstart") ||
-            hitNode->hasEventListeners("touchend") ||
-            hitNode->hasEventListeners("touchmove") ||
-            hitNode->hasEventListeners("touchcancel"))) {
-          node_info |= NODE_INFO_HAS_TOUCH_LISTENER;
         }
    
         // Track complex-mouse event, such as double click, mouse move .etc 
