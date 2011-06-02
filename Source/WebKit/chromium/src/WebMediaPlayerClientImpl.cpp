@@ -248,12 +248,37 @@ PlatformMedia WebMediaPlayerClientImpl::platformMedia() const
 
 void WebMediaPlayerClientImpl::play()
 {
-    if (m_webMediaPlayer.get())
+#if defined(TOOLKIT_MEEGOTOUCH)
+    Frame* frame = static_cast<HTMLMediaElement*>(
+        m_mediaPlayer->mediaPlayerClient())->document()->frame();
+
+    WebFrameImpl* webFrame = WebFrameImpl::fromFrame(frame);
+
+    /*try to do resource require for audio and video*/
+    webFrame->client()->resourceRequire(webFrame, this);
+/* 
+ * comments it for Policy Aware Application
+ * Do nothing  , wait for callback of resource require to do something
+*/
+ 
+#else
+   if (m_webMediaPlayer.get())
         m_webMediaPlayer->play();
+#endif
 }
 
 void WebMediaPlayerClientImpl::pause()
 {
+#if defined(TOOLKIT_MEEGOTOUCH)
+    Frame* frame = static_cast<HTMLMediaElement*>(
+        m_mediaPlayer->mediaPlayerClient())->document()->frame();
+
+    WebFrameImpl* webFrame = WebFrameImpl::fromFrame(frame);
+
+    /*just release the resource holded*/
+    webFrame->client()->resourceRelease(webFrame, this);
+#endif
+
     if (m_webMediaPlayer.get())
         m_webMediaPlayer->pause();
 }

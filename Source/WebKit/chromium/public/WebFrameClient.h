@@ -81,6 +81,12 @@ public:
     // May return null.
     virtual WebMediaPlayer* createMediaPlayer(WebFrame*, WebMediaPlayerClient*) { return 0; }
 
+#if defined(TOOLKIT_MEEGOTOUCH)
+    // May return null.
+    virtual int resourceRequire(WebFrame*, WebMediaPlayerClient*) { return 0; }
+    virtual int resourceRelease(WebFrame*, WebMediaPlayerClient*) { return 0; }
+#endif
+
     // May return null.
     virtual WebApplicationCacheHost* createApplicationCacheHost(WebFrame*, WebApplicationCacheHostClient*) { return 0; }
 
