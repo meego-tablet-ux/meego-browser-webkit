@@ -269,37 +269,34 @@ public:
       Modifying,
       Committed
     };
-	virtual void queryNodeTypeAtPoint(int x, int y, unsigned int& node_info);
-	virtual void drawLinkTapHighlight(WebCanvas* canvas, const WebRect& rect); 
+    virtual void queryNodeTypeAtPoint(int x, int y, unsigned int& node_info);
+    virtual void drawLinkTapHighlight(WebCanvas* canvas, const WebRect& rect); 
 
-	virtual void drawSelectionHandle(WebCanvas* canvas, const WebRect& rect);
+    virtual void updateSelectionHandler();
 
-	virtual void drawSelectionShade(WebCanvas* canvas, const WebRect& rect);
+    virtual void drawSelectionShade(WebCanvas* canvas, const WebRect& rect);
 
-	WebCore::IntPoint m_handlerStart;
-	WebCore::IntPoint m_handlerEnd;
+    bool m_selectionInParagraph;
+    int m_selectionHandlerHeight;
+    
+    SelectionStage m_selectionStage;
 
-	bool m_selectionInParagraph;
-	SelectionStage m_selectionStage;
+    WebCore::IntPoint m_lastMouseStart;
+    WebCore::IntPoint m_lastMouseEnd;
 
-	WebCore::IntPoint m_lastMouseStart;
-	WebCore::IntPoint m_lastMouseEnd;
+    virtual void getSelectionStartEndPoint(WebCore::IntPoint& startPoint, WebCore::IntPoint& endPoint);
+    virtual void setSelectionRange(const WebPoint start, const WebPoint end, bool set);
+    virtual void selectRange(const WebCore::IntPoint start, const WebCore::IntPoint end);
+    virtual void selectItem(const WebPoint pos);
+    virtual void commitSelection();
+    virtual void zoom2TextPre(int x, int y);
+    virtual void zoom2TextPost();
+    virtual void queryEditorCursorPosition(int& cursor_position);
+    virtual void queryEditorCurrentSelection(WebString& selection);
+    virtual void queryEditorSurroundingText(WebString& surrounding_text);
+    virtual WebRect queryElementAreaAt(int x, int y,int max_width, int max_height);
 
-	virtual void getSelectionStartEndPoint(WebCore::IntPoint& startPoint, WebCore::IntPoint& endPoint);
-	virtual void invalidateSelectionHandler(WebCore::IntPoint pos);
-	virtual void setSelectionRange(const WebPoint start, const WebPoint end, bool set);
-	virtual void selectRange(const WebCore::IntPoint start, const WebCore::IntPoint end);
-	virtual void selectItem(const WebPoint pos);
-	virtual void commitSelection();
-	virtual void drawFilledCircleAtPoint(WebCanvas* canvas, const WebCore::IntPoint pos, int radius, WebCore::Color& color);
-	virtual void zoom2TextPre(int x, int y);
-	virtual void zoom2TextPost();
-  virtual void queryEditorCursorPosition(int& cursor_position);
-  virtual void queryEditorCurrentSelection(WebString& selection);
-  virtual void queryEditorSurroundingText(WebString& surrounding_text);
-  virtual WebRect queryElementAreaAt(int x, int y,int max_width, int max_height);
-
-	WebCore::Node* m_zoom2textHitNode;
+    WebCore::Node* m_zoom2textHitNode;
 #endif
 
     // Handles context menu events orignated via the the keyboard. These

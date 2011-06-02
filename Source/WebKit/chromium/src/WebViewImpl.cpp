@@ -1427,7 +1427,7 @@ void WebViewImpl::paint(WebCanvas* canvas, const WebRect& rect)
     }
 #if defined(TOOLKIT_MEEGOTOUCH)
     drawLinkTapHighlight(canvas, rect);
-    drawSelectionHandle(canvas, rect);
+    updateSelectionHandler();
     if (!m_selectionInParagraph)
       drawSelectionShade(canvas, rect);
 #endif
@@ -1475,14 +1475,7 @@ void WebViewImpl::selectItem(const WebPoint pos)
   getSelectionStartEndPoint(startPoint, endPoint);
   m_startPoint = startPoint;
   m_endPoint = endPoint;
-    
-  // draw the new start/end handlers
-  invalidateSelectionHandler(m_selectFrame->view()->contentsToWindow(startPoint));
-  invalidateSelectionHandler(m_selectFrame->view()->contentsToWindow(endPoint));
 
-  // clear the old start/end handlers
-  invalidateSelectionHandler(m_cachedSelectionStartPoint);
-  invalidateSelectionHandler(m_cachedSelectionEndPoint);
 }
 
 /*
@@ -1521,9 +1514,6 @@ void WebViewImpl::commitSelection()
 
   m_selectionStage = Committed;
 
-  // clear the old start/end handlers
-  invalidateSelectionHandler(m_selectFrame->view()->contentsToWindow(m_lastMouseStart));
-  invalidateSelectionHandler(m_selectFrame->view()->contentsToWindow(m_lastMouseEnd));
 }
 
 /*
@@ -1612,9 +1602,9 @@ void WebViewImpl::selectRange(const IntPoint start, const IntPoint end)
   VisibleSelection sel(startPosition, endPosition);
   sc->setSelection(sel);
   m_selectionStage = Modifying;
-  // draw the new start/end handlers
-  invalidateSelectionHandler(m_selectFrame->view()->contentsToWindow(m_startPoint));
-  invalidateSelectionHandler(m_selectFrame->view()->contentsToWindow(m_endPoint));
+
+  updateSelectionHandler();
+  
 }
 
 
@@ -1639,24 +1629,15 @@ void WebViewImpl::setSelectionRange(const WebPoint start, const WebPoint end, bo
   {
     IntPoint start_point(start.x, start.y);
     start_point = m_page->mainFrame()->view()->windowToContents(start_point);
-
     IntPoint end_point(end.x, end.y);
     end_point = m_page->mainFrame()->view()->windowToContents(end_point);
 
     selectRange(start_point, end_point);
   }
 
-  // clear the old start/end handlers
-  invalidateSelectionHandler(m_cachedSelectionStartPoint);
-  invalidateSelectionHandler(m_cachedSelectionEndPoint);
+  
 }
 
-void WebViewImpl::invalidateSelectionHandler(IntPoint pos)
-{
-  IntRect damageRect(pos.x() - CARET_RADIUS, pos.y() - CARET_RADIUS, 
-		     2* CARET_RADIUS, 2 * CARET_RADIUS);
-  m_client->didInvalidateRect(damageRect);
-}
 
 /*
  * get the position of the start/end handler
@@ -1730,25 +1711,16 @@ void WebViewImpl::getSelectionStartEndPoint(IntPoint& startPoint, IntPoint& endP
     IntPoint start, end;
     if (startRect != endRect)
     {
-      start = IntPoint(startRect.x(), startRect.y()+startRect.height()/2);
-      end = IntPoint(endRect.x(), endRect.y()+endRect.height()/2 );
+      start = IntPoint(startRect.x(), startRect.y());
+      end = IntPoint(endRect.x(), endRect.y() + endRect.height() - 1);
+      // subtract 1 pixel to avoid cross lines selection. When the point is in the
+      // boundary of two lines, it is easy to include another line
+      m_selectionHandlerHeight = min(startRect.height(), endRect.height());
     }
     startPoint = start;
     endPoint = end;
   }
 }
-
-void WebViewImpl::drawFilledCircleAtPoint(WebCanvas* canvas, const WebCore::IntPoint pos, int radius, Color& color)
-{
-  PlatformContextSkia context(canvas);
-  GraphicsContext gc(reinterpret_cast<PlatformGraphicsContext*>(&context));
-
-  gc.save();
-  gc.drawFilledCircleAtPoint(pos, radius, color);
-  gc.restore();
-
-}
-
 
 void WebViewImpl::drawSelectionShade(WebCanvas* canvas, const WebRect& rect)
 {
@@ -1772,15 +1744,17 @@ void WebViewImpl::drawSelectionShade(WebCanvas* canvas, const WebRect& rect)
 #else
     notImplemented();
 #endif
-
-    IntRect mRings = m_selectFrame->view()->contentsToWindow(IntRect(rc));
+    IntRect ir(rc);
+    IntRect r(ir.x() +1, ir.y()+1, ir.width() -2, ir.height() -2);
+    
+    IntRect mRings = m_selectFrame->view()->contentsToWindow(r);
 
     Color color(0x1e, 0x90, 0xff, 0x80);
     gc.fillRect(mRings, color,ColorSpaceDeviceRGB);
 }
 
 
-void WebViewImpl::drawSelectionHandle(WebCanvas* canvas, const WebRect& rect)
+void WebViewImpl::updateSelectionHandler()
 {
   IntPoint start_window;
   IntPoint end_window;
@@ -1794,16 +1768,9 @@ void WebViewImpl::drawSelectionHandle(WebCanvas* canvas, const WebRect& rect)
   {
     m_startPoint = IntPoint();
     m_endPoint = IntPoint();
-    if ((m_cachedSelectionStartPoint != IntPoint()) && (m_cachedSelectionEndPoint != IntPoint()))  // has draw handle before
-    {
-      invalidateSelectionHandler(m_cachedSelectionStartPoint);
-      invalidateSelectionHandler(m_cachedSelectionEndPoint);
-      m_cachedSelectionStartPoint = IntPoint();
-      m_cachedSelectionEndPoint = IntPoint();
-    }
     WebPoint start(0,0);
     WebPoint end(0,0);
-    m_client->UpdateSelectionRange(start, end, false);
+    m_client->UpdateSelectionRange(start, end, 0, false);
     return;
   }
 
@@ -1818,32 +1785,11 @@ void WebViewImpl::drawSelectionHandle(WebCanvas* canvas, const WebRect& rect)
 
     start_window = m_selectFrame->view()->contentsToWindow(m_startPoint);
     end_window = m_selectFrame->view()->contentsToWindow(m_endPoint);
-    Color color(0x3f, 0xb3, 0x08, 0x80);
-    if (start_window != IntPoint() && end_window != IntPoint())
-    {
-      drawFilledCircleAtPoint(canvas, start_window, CARET_RADIUS, color);
-      drawFilledCircleAtPoint(canvas, end_window, CARET_RADIUS, color);
-    }
-
-    // check whether cached selection start/end rect changed, if so, tell ViewHost this
-    if ( (start_window != m_cachedSelectionStartPoint) || (end_window != m_cachedSelectionEndPoint) )
-    {
-      // clear the old start/end handlers
-      if ((m_cachedSelectionStartPoint != IntPoint()) && (m_cachedSelectionEndPoint != IntPoint()))
-      {
-	invalidateSelectionHandler(m_cachedSelectionStartPoint);
-	invalidateSelectionHandler(m_cachedSelectionEndPoint);
-      }
-     
-      m_cachedSelectionStartPoint = start_window;
-      m_cachedSelectionEndPoint = end_window;
     
-      // update start/end position in host
-      WebPoint wp_start(start_window);
-      WebPoint wp_end(end_window);
-      m_client->UpdateSelectionRange(wp_start, wp_end, true);
-
-    }
+    // update start/end position in host
+    WebPoint wp_start(start_window);
+    WebPoint wp_end(end_window);
+    m_client->UpdateSelectionRange(wp_start, wp_end, m_selectionHandlerHeight, true);
   }
 }
 

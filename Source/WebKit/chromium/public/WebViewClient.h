@@ -234,7 +234,7 @@ public:
     virtual void showContextMenu(WebFrame*, const WebContextMenuData&) { }
 
 #if defined(TOOLKIT_MEEGOTOUCH)
-    virtual void UpdateSelectionRange(WebPoint&, WebPoint&, bool set) { }
+    virtual void UpdateSelectionRange(WebPoint&, WebPoint&, int, bool set) { }
 #endif
 
     // Called when a drag-n-drop operation should begin.
