@@ -88,6 +88,7 @@
 #include "ProgressTracker.h"
 #include "RenderLayer.h"
 #include "RenderView.h"
+#include "RenderBox.h"
 #include "ResourceHandle.h"
 #include "SecurityOrigin.h"
 #include "SelectionController.h"
@@ -959,7 +960,7 @@ void WebViewImpl::queryNodeTypeAtPoint(int x, int y, unsigned int& node_info)
             node_info |= NODE_INFO_IS_EMBEDDED_OBJECT;
           }
         }
-   
+
         // Track complex-mouse event, such as double click, mouse move .etc 
         Element * hitElement = hitNode->isElementNode()? static_cast<HTMLElement*>(hitNode): hitNode->parentElement();
         while (hitElement) {
@@ -985,30 +986,26 @@ void WebViewImpl::queryNodeTypeAtPoint(int x, int y, unsigned int& node_info)
           hitElement = hitElement->parentElement();
         }
 
-        // test scrollable area
-        RenderLayer* layer = layerForNode(hitNode);
-        if (layer && (layer->horizontalScrollbar() ||
-                      layer->verticalScrollbar()))
+        bool scrollable = false;
+        RenderObject* renderer = hitNode->renderer();
+        for (; renderer; renderer = renderer->parent()) {
+          if (renderer->isBox() && toRenderBox(renderer)->canBeScrolledAndHasScrollableArea()) {
+            scrollable = true;
+            break;
+          }
+        }
+
+        if (scrollable && renderer && renderer->parent())
         {
           node_info |= NODE_INFO_IS_SCROLLABLE_AREA;
         }
 
-        RenderObject* renderer = hitNode->renderer();
+        renderer = hitNode->renderer();
         FrameView* view = renderer->frame()->view();
         if (view && ((view->contentsWidth() > view->visibleWidth()) ||
                      (view->contentsHeight() > view->visibleHeight())))
         {
           node_info |= NODE_INFO_IS_SCROLLABLE_AREA;
-        }
-
-        if (renderer->isListBox())
-        {
-          RenderListBox* box = static_cast<RenderListBox*>(renderer);
-          if (box && ((box->contentsSize().width() > box->visibleWidth()) ||
-                      (box->contentsSize().height() > box->visibleHeight())))
-          {
-            node_info |= NODE_INFO_IS_SCROLLABLE_AREA;
-          }
         }
     }
 }
