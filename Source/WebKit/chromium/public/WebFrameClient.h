@@ -84,7 +84,7 @@ public:
 #if defined(TOOLKIT_MEEGOTOUCH)
     // May return null.
     virtual int resourceRequire(WebFrame*, WebMediaPlayerClient*) { return 0; }
-    virtual int resourceRelease(WebFrame*, WebMediaPlayerClient*) { return 0; }
+    virtual int resourceRelease(void) { return 0; }
 #endif
 
     // May return null.

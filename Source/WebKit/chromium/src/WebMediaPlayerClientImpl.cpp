@@ -276,7 +276,7 @@ void WebMediaPlayerClientImpl::pause()
     WebFrameImpl* webFrame = WebFrameImpl::fromFrame(frame);
 
     /*just release the resource holded*/
-    webFrame->client()->resourceRelease(webFrame, this);
+    webFrame->client()->resourceRelease();
 #endif
 
     if (m_webMediaPlayer.get())
