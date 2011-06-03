@@ -52,7 +52,18 @@ struct WebURLError;
 template <typename T> class WebVector;
 
 class WebPlugin {
+
+#if defined(TOOLKIT_MEEGOTOUCH)
+protected:
+    unsigned long id_;
+#endif
+
 public:
+#if defined(TOOLKIT_MEEGOTOUCH)
+    unsigned long get_id() { return id_; }
+    void set_id(unsigned long id) { id_ = id; }
+#endif
+
     virtual bool initialize(WebPluginContainer*) = 0;
     virtual void destroy() = 0;
 
