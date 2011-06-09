@@ -963,19 +963,19 @@ void WebViewImpl::queryNodeTypeAtPoint(int x, int y, unsigned int& node_info)
 
         // Track complex-mouse event, such as double click, mouse move .etc 
         Element * hitElement = hitNode->isElementNode()? static_cast<HTMLElement*>(hitNode): hitNode->parentElement();
-        while (hitElement) {
+        while (hitElement && !hitElement->hasTagName(HTMLNames::bodyTag)) {
           // the node is considered as double click aware node if it listens to dblclick events
-          if (hitElement->getEventListeners("dblclick").size() >= 1) {
+          if (hitElement->hasEventListeners("dblclick")) {
             node_info |= NODE_INFO_HAS_DOUBLECLICK_LISTENER;
           }
  
           // the node is considered as mouse move aware node if it listens to mouse move events
           // some website need mousedown&mouseup to trigger mousemove event listener, such as Google map
-          if (hitElement->getEventListeners("mousedown").size() >= 1
-              && hitElement->getEventListeners("mouseup").size() >= 1) {
+          if (hitElement->hasEventListeners("mousedown")
+              && hitElement->hasEventListeners("mouseup")) {
             node_info |= NODE_INFO_HAS_MOUSEMOVE_LISTENER;
           }
-          if (hitElement->getEventListeners("mousemove").size() >= 1) {
+          if (hitElement->hasEventListeners("mousemove")) {
             node_info |= NODE_INFO_HAS_MOUSEMOVE_LISTENER;
           }
 
