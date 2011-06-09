@@ -145,6 +145,22 @@ void WebMediaPlayerClientImpl::timeChanged()
 void WebMediaPlayerClientImpl::repaint()
 {
     ASSERT(m_mediaPlayer);
+#if defined(TOOLKIT_MEEGOTOUCH)
+    int ishidden;
+
+    Frame* frame = static_cast<HTMLMediaElement*>(
+        m_mediaPlayer->mediaPlayerClient())->document()->frame();
+
+    WebFrameImpl* webFrame = WebFrameImpl::fromFrame(frame);
+    ishidden = webFrame->client()->isHidden();
+    if(ishidden){
+      /*to pause in-active media player*/
+      if(!paused()){
+        pause();
+      }
+    }
+#endif
+  
 #if USE(ACCELERATED_COMPOSITING)
     if (m_videoLayer.get() && supportsAcceleratedRendering())
         m_videoLayer->setNeedsDisplay(IntRect(0, 0, m_videoLayer->bounds().width(), m_videoLayer->bounds().height()));
