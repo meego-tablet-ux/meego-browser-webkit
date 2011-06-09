@@ -326,10 +326,10 @@ module window {
 #if defined(ENABLE_ORIENTATION_EVENTS) && ENABLE_ORIENTATION_EVENTS
         attribute EventListener onorientationchange;
 #endif
-        attribute [Conditional=TOUCH_EVENTS,EnabledAtRuntime] EventListener ontouchstart;
-        attribute [Conditional=TOUCH_EVENTS,EnabledAtRuntime] EventListener ontouchmove;
-        attribute [Conditional=TOUCH_EVENTS,EnabledAtRuntime] EventListener ontouchend;
-        attribute [Conditional=TOUCH_EVENTS,EnabledAtRuntime] EventListener ontouchcancel;
+        attribute [Conditional=TOUCH_EVENTS] EventListener ontouchstart;
+        attribute [Conditional=TOUCH_EVENTS] EventListener ontouchmove;
+        attribute [Conditional=TOUCH_EVENTS] EventListener ontouchend;
+        attribute [Conditional=TOUCH_EVENTS] EventListener ontouchcancel;
 
         attribute [Conditional=DEVICE_ORIENTATION,EnabledAtRuntime] DeviceMotionEventConstructor DeviceMotionEvent;
         attribute [Conditional=DEVICE_ORIENTATION,EnabledAtRuntime] EventListener ondevicemotion;

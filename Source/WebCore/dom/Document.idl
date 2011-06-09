@@ -316,15 +316,15 @@ module core {
         attribute [DontEnum] EventListener onsearch;
         attribute [DontEnum] EventListener onselectstart;
         attribute [DontEnum] EventListener onselectionchange;
-        attribute [DontEnum,Conditional=TOUCH_EVENTS,EnabledAtRuntime] EventListener ontouchstart;
-        attribute [DontEnum,Conditional=TOUCH_EVENTS,EnabledAtRuntime] EventListener ontouchmove;
-        attribute [DontEnum,Conditional=TOUCH_EVENTS,EnabledAtRuntime] EventListener ontouchend;
-        attribute [DontEnum,Conditional=TOUCH_EVENTS,EnabledAtRuntime] EventListener ontouchcancel;
+        attribute [DontEnum,Conditional=TOUCH_EVENTS] EventListener ontouchstart;
+        attribute [DontEnum,Conditional=TOUCH_EVENTS] EventListener ontouchmove;
+        attribute [DontEnum,Conditional=TOUCH_EVENTS] EventListener ontouchend;
+        attribute [DontEnum,Conditional=TOUCH_EVENTS] EventListener ontouchcancel;
         attribute [DontEnum, Conditional=FULLSCREEN_API] EventListener onwebkitfullscreenchange;
 #endif
 
 #if defined(ENABLE_TOUCH_EVENTS) && ENABLE_TOUCH_EVENTS
-        [ReturnsNew, EnabledAtRuntime] Touch createTouch(in DOMWindow window,
+        [ReturnsNew] Touch createTouch(in DOMWindow window,
                                                          in EventTarget target,
                                                          in long identifier,
                                                          in long pageX,
@@ -332,7 +332,7 @@ module core {
                                                          in long ScreenX,
                                                          in long screenY)
             raises (DOMException);
-        [ReturnsNew, EnabledAtRuntime, Custom] TouchList createTouchList()
+        [ReturnsNew, Custom] TouchList createTouchList()
             raises (DOMException);
 #endif
 
