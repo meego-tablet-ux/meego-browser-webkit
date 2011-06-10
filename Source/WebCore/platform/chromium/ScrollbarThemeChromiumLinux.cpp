@@ -46,7 +46,7 @@ ScrollbarTheme* ScrollbarTheme::nativeTheme()
 int ScrollbarThemeChromiumLinux::scrollbarThickness(ScrollbarControlSize controlSize)
 {
 #if defined(TOOLKIT_MEEGOTOUCH)
-  return 0;
+    return 0;
 #else
     // Horiz and Vert scrollbars are the same thickness.
     IntSize scrollbarSize = PlatformBridge::getThemePartSize(PlatformBridge::PartScrollbarVerticalTrack);

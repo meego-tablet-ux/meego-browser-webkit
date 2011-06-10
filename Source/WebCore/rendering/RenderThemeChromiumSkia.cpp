@@ -533,8 +533,10 @@ int RenderThemeChromiumSkia::menuListInternalPadding(RenderStyle* style, int pad
     // If the MenuList actually has appearance "NoAppearance", then that means
     // we don't draw a button, so don't reserve space for it.
     const int barType = style->direction() == LTR ? RightPadding : LeftPadding;
-    if (paddingType == barType && style->appearance() != NoControlPart)
-        padding += ScrollbarTheme::nativeTheme()->scrollbarThickness();
+    if (paddingType == barType && style->appearance() != NoControlPart) {
+        IntSize scrollbarSize = PlatformBridge::getThemePartSize(PlatformBridge::PartScrollbarVerticalTrack);
+        padding += scrollbarSize.width();
+    }
 
     return padding;
 }
