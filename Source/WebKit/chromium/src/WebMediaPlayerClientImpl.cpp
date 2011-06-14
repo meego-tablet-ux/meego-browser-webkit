@@ -271,7 +271,7 @@ void WebMediaPlayerClientImpl::play()
     WebFrameImpl* webFrame = WebFrameImpl::fromFrame(frame);
 
     /*try to do resource require for audio and video*/
-    webFrame->client()->resourceRequire(webFrame, this);
+    webFrame->client()->resourceRequire(webFrame, mediaPlayer());
 /* 
  * comments it for Policy Aware Application
  * Do nothing  , wait for callback of resource require to do something
