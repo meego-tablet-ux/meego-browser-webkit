@@ -281,7 +281,7 @@ int HTMLBodyElement::scrollLeft() const
     Document* document = this->document();
     document->updateLayoutIgnorePendingStylesheets();
     FrameView* view = document->view();
-    return view ? adjustForZoom(view->scrollX(), document) : 0;
+    return view ? adjustForZoom(view->actualVisibleContentRect().x(), document) : 0;
 }
 
 void HTMLBodyElement::setScrollLeft(int scrollLeft)
@@ -303,7 +303,7 @@ int HTMLBodyElement::scrollTop() const
     Document* document = this->document();
     document->updateLayoutIgnorePendingStylesheets();
     FrameView* view = document->view();
-    return view ? adjustForZoom(view->scrollY(), document) : 0;
+    return view ? adjustForZoom(view->actualVisibleContentRect().y(), document) : 0;
 }
 
 void HTMLBodyElement::setScrollTop(int scrollTop)
