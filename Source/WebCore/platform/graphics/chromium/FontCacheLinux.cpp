@@ -54,17 +54,46 @@ void FontCache::platformInit()
 {
 }
 
+typedef HashMap<String, SkTypeface*> TypefaceCache;
+
 const SimpleFontData* FontCache::getFontDataForCharacters(const Font& font,
                                                           const UChar* characters,
                                                           int length)
 {
-    icu::Locale locale = icu::Locale::getDefault();
-    String family = PlatformBridge::getFontFamilyForCharacters(characters, length, locale.getLanguage());
-    if (family.isEmpty())
+    int style = SkTypeface::kNormal;
+    if (font.fontDescription().weight() >= FontWeightBold)
+        style |= SkTypeface::kBold;
+    if (font.fontDescription().italic())
+        style |= SkTypeface::kItalic;
+
+    static TypefaceCache *gTypefaceChache = 0;
+    if (!gTypefaceChache)
+        gTypefaceChache = new TypefaceCache;
+
+    SkTypeface* tf = 0;
+
+    String key(characters, length);
+    key.append(static_cast<UChar>(style));
+    TypefaceCache::iterator it = gTypefaceChache->find(key);
+    if (it != gTypefaceChache->end())
+        tf = it->second;
+    else {
+        tf = SkTypeface::CreateForChars(characters, length * 2,
+                                      static_cast<SkTypeface::Style>(style));
+        gTypefaceChache->set(key, tf);
+    }
+    if (!tf)
         return 0;
 
-    AtomicString atomicFamily(family);
-    return getCachedFontData(getCachedFontPlatformData(font.fontDescription(), atomicFamily, false));
+    // FIXME: we don't have a family name for this font.
+    // However, the family name within FontPlatformData is only used when picking
+    // a render style for the font, so it's not too great of a loss.
+    FontPlatformData result(tf,
+                            "",
+                            font.fontDescription().computedSize(),
+                            (style & SkTypeface::kBold) && !tf->isBold(),
+                            (style & SkTypeface::kItalic) && !tf->isItalic());
+    return getCachedFontData(&result);
 }
 
 SimpleFontData* FontCache::getSimilarFontPlatformData(const Font& font)
