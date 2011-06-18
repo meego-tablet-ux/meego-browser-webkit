@@ -194,6 +194,8 @@ public:
     IntSize size() const { return m_size; }
     void setSize(const IntSize& size);
 
+    void setIsOverlapped(bool overlapped);
+        
     void load(const String& url, const ContentType&);
     void cancelLoad();
 

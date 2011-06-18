@@ -29,13 +29,14 @@
 #if ENABLE(VIDEO)
 
 #include "RenderMedia.h"
+#include "OverlapTestRequestClient.h"
 
 namespace WebCore {
     
 class HTMLMediaElement;
 class HTMLVideoElement;
 
-class RenderVideo : public RenderMedia {
+class RenderVideo : public RenderMedia, OverlapTestRequestClient {
 public:
     RenderVideo(HTMLVideoElement*);
     virtual ~RenderVideo();
@@ -51,6 +52,7 @@ public:
 
     virtual bool shouldDisplayVideo() const;
 
+    virtual void setOverlapTestResult(bool);
 private:
     virtual void updateFromElement();
     inline HTMLVideoElement* videoElement() const;

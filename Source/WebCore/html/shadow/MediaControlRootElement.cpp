@@ -248,6 +248,10 @@ void MediaControlRootElement::makeOpaque()
     // FIXME: Make more efficient <http://webkit.org/b/58157>
     m_panel->style()->setProperty(webkitTransitionString(), transitionValue, ec);
     m_panel->style()->setProperty(opacityString(), opacityValue, ec);
+
+    // make the root element to be opaque also
+    this->style()->setProperty(webkitTransitionString(), transitionValue, ec);
+    this->style()->setProperty(opacityString(), opacityValue, ec);
     m_opaque = true;
 }
 
@@ -265,6 +269,10 @@ void MediaControlRootElement::makeTransparent()
     // FIXME: Make more efficient <http://webkit.org/b/58157>
     m_panel->style()->setProperty(webkitTransitionString(), transitionValue, ec);
     m_panel->style()->setProperty(opacityString(), opacityValue, ec);
+
+    // make the root element to be transparent also
+    this->style()->setProperty(webkitTransitionString(), transitionValue, ec);
+    this->style()->setProperty(opacityString(), opacityValue, ec);
     m_opaque = false;
 }
 

@@ -112,6 +112,7 @@ public:
     virtual unsigned totalBytes() const;
     virtual unsigned bytesLoaded() const;
     virtual void setSize(const WebCore::IntSize&);
+    virtual void setIsOverlapped(bool overlapped);
     virtual void paint(WebCore::GraphicsContext*, const WebCore::IntRect&);
     virtual void paintCurrentFrameInContext(WebCore::GraphicsContext*, const WebCore::IntRect&);
     virtual void setPreload(WebCore::MediaPlayer::Preload);

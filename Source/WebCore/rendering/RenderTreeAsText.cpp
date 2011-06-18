@@ -231,7 +231,14 @@ void RenderTreeAsText::writeRenderObject(TextStream& ts, const RenderObject& o, 
         ts << " " << static_cast<const void*>(&o);
 
     if (o.style() && o.style()->zIndex())
+    {
         ts << " zI: " << o.style()->zIndex();
+    }
+
+    if (o.style())
+    {
+      ts << " opacity " << o.style()->opacity();
+    }
 
     if (o.node()) {
         String tagName = getTagName(o.node());
@@ -603,6 +610,8 @@ static void write(TextStream& ts, RenderLayer& l,
       
     ts << layerBounds;
 
+    ts << " isTransparent " << l.isTransparent();
+    
     if (!layerBounds.isEmpty()) {
         if (!backgroundClipRect.contains(layerBounds))
             ts << " backgroundClip " << backgroundClipRect;

@@ -206,6 +206,11 @@ void RenderVideo::paintReplaced(PaintInfo& paintInfo, int tx, int ty)
         mediaPlayer->paintCurrentFrameInContext(paintInfo.context, rect);
     else
         mediaPlayer->paint(paintInfo.context, rect);
+
+    if (paintInfo.overlapTestRequests)
+    {
+      paintInfo.overlapTestRequests->add(this, rect);
+    }
 }
 
 void RenderVideo::layout()
@@ -264,6 +269,16 @@ int RenderVideo::minimumReplacedHeight() const
     return RenderReplaced::minimumReplacedHeight(); 
 }
 
+void RenderVideo::setOverlapTestResult(bool overlapped)
+{
+  MediaPlayer* mediaPlayer = mediaElement()->player();
+  if (!mediaPlayer)
+    return;
+
+  mediaPlayer->setIsOverlapped(overlapped);
+  return;
+}
+
 #if USE(ACCELERATED_COMPOSITING)
 bool RenderVideo::supportsAcceleratedRendering() const
 {
@@ -280,8 +295,8 @@ void RenderVideo::acceleratedRenderingStateChanged()
     if (p)
         p->acceleratedRenderingStateChanged();
 }
+
 #endif  // USE(ACCELERATED_COMPOSITING)
 
 } // namespace WebCore
-
 #endif

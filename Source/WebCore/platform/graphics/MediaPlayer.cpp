@@ -590,6 +590,11 @@ void MediaPlayer::setSize(const IntSize& size)
     m_private->setSize(size);
 }
 
+void MediaPlayer::setIsOverlapped(bool overlapped)
+{
+  m_private->setIsOverlapped(overlapped);
+}
+
 bool MediaPlayer::visible() const
 {
     return m_visible;

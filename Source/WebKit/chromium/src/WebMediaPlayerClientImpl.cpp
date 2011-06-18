@@ -467,6 +467,12 @@ void WebMediaPlayerClientImpl::setSize(const IntSize& size)
         m_webMediaPlayer->setSize(WebSize(size.width(), size.height()));
 }
 
+void WebMediaPlayerClientImpl::setIsOverlapped(bool overlapped)
+{
+  if (m_webMediaPlayer.get())
+    m_webMediaPlayer->setIsOverlapped(overlapped);
+}
+
 void WebMediaPlayerClientImpl::paint(GraphicsContext* context, const IntRect& rect)
 {
 #if USE(ACCELERATED_COMPOSITING)

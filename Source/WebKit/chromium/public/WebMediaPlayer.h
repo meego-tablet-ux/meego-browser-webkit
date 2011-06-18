@@ -107,6 +107,8 @@ public:
 
     virtual void setSize(const WebSize&) = 0;
 
+    virtual void setIsOverlapped(bool overlapped) {};
+
     virtual void paint(WebCanvas*, const WebRect&) = 0;
 
     // True if the loaded media has a playable video/audio track.
