@@ -1267,6 +1267,7 @@ void WebViewImpl::setActualVisibleContentRect(const WebRect& actualVisibleConten
     if (view)
     {   
       view->setActualVisibleContentRect(actualVisibleContentRect);
+      view->repaintFixedElementsAfterScrolling();
       view->scrollPositionChanged();
     }
   }

@@ -1139,13 +1139,13 @@ void FrameView::removeFixedObject()
 
 int FrameView::scrollXForFixedPosition() const
 {
-    int visibleContentWidth = visibleContentRect().width();
+    int visibleContentWidth = actualVisibleContentRect().width();
     int maxX = contentsWidth() - visibleContentWidth;
 
     if (maxX == 0)
         return 0;
 
-    int x = scrollX();
+    int x = actualVisibleContentRect().location().x();
 
     if (x < 0)
         x = 0;
@@ -1167,13 +1167,13 @@ int FrameView::scrollXForFixedPosition() const
 
 int FrameView::scrollYForFixedPosition() const
 {
-    int visibleContentHeight = visibleContentRect().height();
+    int visibleContentHeight = actualVisibleContentRect().height();
 
     int maxY = contentsHeight() - visibleContentHeight;
     if (maxY == 0)
         return 0;
 
-    int y = scrollY();
+    int y = actualVisibleContentRect().location().y();
 
     if (y < 0)
         y = 0;
@@ -1459,6 +1459,7 @@ void FrameView::repaintFixedElementsAfterScrolling()
 #if USE(ACCELERATED_COMPOSITING)
             root->compositor()->updateCompositingLayers(CompositingUpdateOnScroll);
 #endif
+            root->layer()->repaintIncludingDescendants();
         }
     }
 }
