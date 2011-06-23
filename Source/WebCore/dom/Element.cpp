@@ -597,7 +597,7 @@ PassRefPtr<ClientRect> Element::getBoundingClientRect() const
         result.unite(quads[i].boundingBox());
 
     if (FrameView* view = document()->view()) {
-        IntRect visibleContentRect = view->visibleContentRect();
+        IntRect visibleContentRect = view->actualVisibleContentRect();
         result.move(-visibleContentRect.x(), -visibleContentRect.y());
     }
 
