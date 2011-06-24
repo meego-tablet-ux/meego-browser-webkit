@@ -965,7 +965,7 @@ void WebViewImpl::queryNodeTypeAtPoint(int x, int y, unsigned int& node_info)
    
         // Track complex-mouse event, such as double click, mouse move .etc 
         Element * hitElement = hitNode->isElementNode()? static_cast<HTMLElement*>(hitNode): hitNode->parentElement();
-        while (hitElement && !hitElement->hasTagName(HTMLNames::bodyTag)) {
+        while (hitElement) {
           // the node is considered as double click aware node if it listens to dblclick events
           if (hitElement->hasEventListeners("dblclick")) {
             node_info |= NODE_INFO_HAS_DOUBLECLICK_LISTENER;
@@ -978,16 +978,22 @@ void WebViewImpl::queryNodeTypeAtPoint(int x, int y, unsigned int& node_info)
             node_info |= NODE_INFO_HAS_MOUSEMOVE_LISTENER;
           }
           if (hitElement->hasEventListeners("mousemove")) {
-            node_info |= NODE_INFO_HAS_MOUSEMOVE_LISTENER;
+            // When rect of node in the mainframe visible content rect,
+            // we should not send the mouse move, but let pan gesture 
+            // enable in the frontend.
+            IntRect visibleContentRect = m_page->mainFrame()->view()->actualVisibleContentRect();
+            if (hitElement->getRect().width() < visibleContentRect.width()
+                && hitElement->getRect().height() < visibleContentRect.height())
+              node_info |= NODE_INFO_HAS_MOUSEMOVE_LISTENER;
           }
 
           if ((node_info & NODE_INFO_HAS_DOUBLECLICK_LISTENER) 
-              && (node_info & NODE_INFO_HAS_DOUBLECLICK_LISTENER))
+              && (node_info & NODE_INFO_HAS_MOUSEMOVE_LISTENER)) {
             break;
-
+          }
           hitElement = hitElement->parentElement();
         }
-
+          
         bool scrollable = false;
         RenderObject* renderer = hitNode->renderer();
         for (; renderer; renderer = renderer->parent()) {
