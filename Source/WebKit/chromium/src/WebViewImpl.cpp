@@ -931,6 +931,12 @@ void WebViewImpl::queryNodeTypeAtPoint(int x, int y, unsigned int& node_info)
     if (!mainFrameImpl() || !mainFrameImpl()->frameView())
         return;
 
+    if (m_page->mainFrame()->document()) {
+        if(m_page->mainFrame()->document()->hasListenerType(Document::MOUSEOUT_LISTENER)) {
+          node_info |= NODE_INFO_HAS_MOUSEOUT_LISTENER;
+        }
+    }
+
     m_lastMouseDownPoint = WebPoint(x, y);
 
     RefPtr<Node> clickedNode;
@@ -985,6 +991,9 @@ void WebViewImpl::queryNodeTypeAtPoint(int x, int y, unsigned int& node_info)
             if (hitElement->getRect().width() < visibleContentRect.width()
                 && hitElement->getRect().height() < visibleContentRect.height())
               node_info |= NODE_INFO_HAS_MOUSEMOVE_LISTENER;
+          }
+          if (hitElement->hasEventListeners("mouseover")) {
+            node_info |= NODE_INFO_HAS_MOUSEOVER_LISTENER;
           }
 
           if ((node_info & NODE_INFO_HAS_DOUBLECLICK_LISTENER) 

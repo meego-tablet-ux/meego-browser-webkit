@@ -158,7 +158,9 @@ public:
       NODE_INFO_HAS_TOUCH_LISTENER = 0x01 << 2,
       NODE_INFO_IS_SCROLLABLE_AREA = 0x01 << 3,
       NODE_INFO_HAS_MOUSEMOVE_LISTENER = 0x01 << 4,
-      NODE_INFO_HAS_DOUBLECLICK_LISTENER = 0x01 << 5
+      NODE_INFO_HAS_DOUBLECLICK_LISTENER = 0x01 << 5,
+      NODE_INFO_HAS_MOUSEOVER_LISTENER = 0x01 << 6,
+      NODE_INFO_HAS_MOUSEOUT_LISTENER = 0x01 << 7
     };
 
     virtual void queryNodeTypeAtPoint(int x, int y, unsigned int& node_info) {};

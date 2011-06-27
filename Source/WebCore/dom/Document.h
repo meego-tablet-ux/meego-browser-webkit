@@ -742,7 +742,12 @@ public:
         TRANSITIONEND_LISTENER               = 0x800,
         BEFORELOAD_LISTENER                  = 0x1000,
         TOUCH_LISTENER                       = 0x2000,
+#if !defined(TOOLKIT_MEEGOTOUCH)
         BEFOREPROCESS_LISTENER               = 0x4000
+#else
+        BEFOREPROCESS_LISTENER               = 0x4000,
+        MOUSEOUT_LISTENER                    = 0x8000
+#endif
     };
 
     bool hasListenerType(ListenerType listenerType) const { return (m_listenerTypes & listenerType); }

@@ -3589,6 +3589,10 @@ void Document::addListenerTypeIfNeeded(const AtomicString& eventType)
         addListenerType(BEFORELOAD_LISTENER);
     else if (eventType == eventNames().beforeprocessEvent)
         addListenerType(BEFOREPROCESS_LISTENER);
+#if defined(TOOLKIT_MEEGOTOUCH)
+    else if (eventType == eventNames().mouseoutEvent)
+        addListenerType(MOUSEOUT_LISTENER);
+#endif
 #if ENABLE(TOUCH_EVENTS)
     else if (eventType == eventNames().touchstartEvent
              || eventType == eventNames().touchmoveEvent
