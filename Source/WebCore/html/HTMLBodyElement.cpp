@@ -294,7 +294,8 @@ void HTMLBodyElement::setScrollLeft(int scrollLeft)
     FrameView* view = frame->view();
     if (!view)
         return;
-    view->setScrollPosition(IntPoint(static_cast<int>(scrollLeft * frame->pageZoomFactor() * frame->pageScaleFactor()), view->scrollY()));
+    view->setScrollPosition(IntPoint(static_cast<int>(scrollLeft * frame->pageZoomFactor() * frame->pageScaleFactor()), 
+                                     view->actualVisibleContentRect().y()));
 }
 
 int HTMLBodyElement::scrollTop() const
@@ -316,7 +317,8 @@ void HTMLBodyElement::setScrollTop(int scrollTop)
     FrameView* view = frame->view();
     if (!view)
         return;
-    view->setScrollPosition(IntPoint(view->scrollX(), static_cast<int>(scrollTop * frame->pageZoomFactor() * frame->pageScaleFactor())));
+    view->setScrollPosition(IntPoint(view->actualVisibleContentRect().x(), 
+                            static_cast<int>(scrollTop * frame->pageZoomFactor() * frame->pageScaleFactor())));
 }
 
 int HTMLBodyElement::scrollHeight() const
