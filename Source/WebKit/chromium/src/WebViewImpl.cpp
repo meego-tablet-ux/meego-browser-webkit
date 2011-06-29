@@ -983,7 +983,8 @@ void WebViewImpl::queryNodeTypeAtPoint(int x, int y, unsigned int& node_info)
               && hitElement->hasEventListeners("mouseup")) {
             node_info |= NODE_INFO_HAS_MOUSEMOVE_LISTENER;
           }
-          if (hitElement->hasEventListeners("mousemove")) {
+          if (hitElement->hasEventListeners("mousemove")
+              || hitElement->hasEventListeners("mouseover")) {
             // When rect of node in the mainframe visible content rect,
             // we should not send the mouse move, but let pan gesture 
             // enable in the frontend.
