@@ -112,6 +112,7 @@ static const char *boolString(bool val)
 #endif
 
 static const float invalidMediaTime = -1;
+static const double cHideControlDelay = 4.0;
 
 using namespace HTMLNames;
 
@@ -122,6 +123,7 @@ HTMLMediaElement::HTMLMediaElement(const QualifiedName& tagName, Document* docum
     , m_asyncEventTimer(this, &HTMLMediaElement::asyncEventTimerFired)
     , m_progressEventTimer(this, &HTMLMediaElement::progressEventTimerFired)
     , m_playbackProgressTimer(this, &HTMLMediaElement::playbackProgressTimerFired)
+    , m_hideControlTimer(this, &HTMLMediaElement::hideControlTimerFired)
     , m_playedTimeRanges()
     , m_playbackRate(1.0f)
     , m_defaultPlaybackRate(1.0f)
@@ -1622,6 +1624,13 @@ void HTMLMediaElement::playbackProgressTimerFired(Timer<HTMLMediaElement>*)
     // FIXME: deal with cue ranges here
 }
 
+void HTMLMediaElement::hideControlTimerFired(Timer<HTMLMediaElement>*)
+{
+  ASSERT(m_player);
+
+  m_mouseOver = false;
+}
+
 void HTMLMediaElement::scheduleTimeupdateEvent(bool periodicEvent)
 {
     double now = WTF::currentTime();
@@ -2369,12 +2378,16 @@ void HTMLMediaElement::defaultEventHandler(Event* event)
     if (event->isMouseEvent()) {
         MouseEvent* mouseEvent = static_cast<MouseEvent*>(event);
         if (mouseEvent->relatedTarget() != this) {
-            if (event->type() == eventNames().mouseoverEvent) {
-                m_mouseOver = true;
-                if (hasMediaControls() && controls() && !canPlay())
-                    mediaControls()->makeOpaque();
-            } else if (event->type() == eventNames().mouseoutEvent)
-                m_mouseOver = false;
+
+          // any mouse events will show control
+          m_mouseOver = true;
+          if (hasMediaControls() && controls() && !canPlay())
+            mediaControls()->makeOpaque();
+
+          // start the timer to hide control
+          if (m_hideControlTimer.isActive())
+            m_hideControlTimer.stop();
+          m_hideControlTimer.startOneShot(cHideControlDelay);
         }
     }
 

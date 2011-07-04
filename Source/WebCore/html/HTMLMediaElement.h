@@ -263,6 +263,7 @@ private:
     void asyncEventTimerFired(Timer<HTMLMediaElement>*);
     void progressEventTimerFired(Timer<HTMLMediaElement>*);
     void playbackProgressTimerFired(Timer<HTMLMediaElement>*);
+    void hideControlTimerFired(Timer<HTMLMediaElement>*);
     void startPlaybackProgressTimer();
     void startProgressEventTimer();
     void stopPeriodicTimers();
@@ -333,6 +334,7 @@ private:
     Timer<HTMLMediaElement> m_asyncEventTimer;
     Timer<HTMLMediaElement> m_progressEventTimer;
     Timer<HTMLMediaElement> m_playbackProgressTimer;
+    Timer<HTMLMediaElement> m_hideControlTimer;
     Vector<RefPtr<Event> > m_pendingEvents;
     RefPtr<TimeRanges> m_playedTimeRanges;
 
