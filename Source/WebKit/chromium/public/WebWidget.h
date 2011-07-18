@@ -160,7 +160,8 @@ public:
       NODE_INFO_HAS_MOUSEMOVE_LISTENER = 0x01 << 4,
       NODE_INFO_HAS_DOUBLECLICK_LISTENER = 0x01 << 5,
       NODE_INFO_HAS_MOUSEOVER_LISTENER = 0x01 << 6,
-      NODE_INFO_HAS_MOUSEOUT_LISTENER = 0x01 << 7
+      NODE_INFO_HAS_MOUSEOUT_LISTENER = 0x01 << 7,
+      NODE_INFO_IS_NOT_SCALABLE_PAGE = 0x01 << 8
     };
 
     virtual void queryNodeTypeAtPoint(int x, int y, unsigned int& node_info) {};

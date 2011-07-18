@@ -935,6 +935,9 @@ void WebViewImpl::queryNodeTypeAtPoint(int x, int y, unsigned int& node_info)
         if(m_page->mainFrame()->document()->hasListenerType(Document::MOUSEOUT_LISTENER)) {
           node_info |= NODE_INFO_HAS_MOUSEOUT_LISTENER;
         }
+        if(!m_page->viewportArguments().userScalable) {
+          node_info |= NODE_INFO_IS_NOT_SCALABLE_PAGE;
+        }
     }
 
     m_lastMouseDownPoint = WebPoint(x, y);
