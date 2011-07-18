@@ -58,7 +58,7 @@ static int contentsX(AbstractView* abstractView)
     FrameView* frameView = frame->view();
     if (!frameView)
         return 0;
-    return frameView->scrollX() / frame->pageZoomFactor();
+    return frameView->actualVisibleContentRect().x() / frame->pageZoomFactor();
 }
 
 static int contentsY(AbstractView* abstractView)
@@ -71,7 +71,7 @@ static int contentsY(AbstractView* abstractView)
     FrameView* frameView = frame->view();
     if (!frameView)
         return 0;
-    return frameView->scrollY() / frame->pageZoomFactor();
+    return frameView->actualVisibleContentRect().y() / frame->pageZoomFactor();
 }
 
 MouseRelatedEvent::MouseRelatedEvent(const AtomicString& eventType, bool canBubble, bool cancelable, PassRefPtr<AbstractView> abstractView,
@@ -92,7 +92,7 @@ MouseRelatedEvent::MouseRelatedEvent(const AtomicString& eventType, bool canBubb
     Frame* frame = view() ? view()->frame() : 0;
     if (frame && !isSimulated) {
         if (FrameView* frameView = frame->view()) {
-            scrollPosition = frameView->scrollPosition();
+            scrollPosition = frameView->actualVisibleContentRect().location();
             adjustedPageLocation = frameView->windowToContents(IntPoint(windowX, windowY));
             float pageZoom = frame->pageZoomFactor();
             if (pageZoom != 1.0f) {
