@@ -1294,6 +1294,22 @@ void WebViewImpl::setActualVisibleContentRect(const WebRect& actualVisibleConten
   }
 }
 
+#if defined(TOOLKIT_MEEGOTOUCH)
+WebRect WebViewImpl::actualVisibleContentRect() {
+  IntRect rect;
+  WebFrameImpl* webframe = mainFrameImpl();
+  if (webframe) {
+    FrameView* view = webframe->frameView();
+    if (view)
+    {
+      rect = view->actualVisibleContentRect();
+    }
+  }
+
+  return WebRect(rect.x(), rect.y(), rect.width(), rect.height());
+}
+#endif
+
 void WebViewImpl::setViewportSize(const WebSize& size)
 {
 //  if (m_viewportSize == size)

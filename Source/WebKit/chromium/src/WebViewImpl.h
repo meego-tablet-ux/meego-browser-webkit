@@ -98,6 +98,9 @@ public:
     virtual void setViewportSize(const WebSize&);
     virtual WebSize viewportSize() { return m_viewportSize;}
     virtual void setActualVisibleContentRect(const WebRect& actualVisibleContentRect);
+#if defined(TOOLKIT_MEEGOTOUCH)
+    virtual WebRect actualVisibleContentRect();
+#endif
     virtual void animate();
     virtual void layout();
     virtual void paint(WebCanvas*, const WebRect&);

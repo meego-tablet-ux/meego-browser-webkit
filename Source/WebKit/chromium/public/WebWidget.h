@@ -72,6 +72,10 @@ public:
 
     // set actual contents rect
     virtual void setActualVisibleContentRect(const WebRect& actualVisibleContentRect) {}
+
+#if defined(TOOLKIT_MEEGOTOUCH)
+    virtual WebRect actualVisibleContentRect() { return WebRect(); };
+#endif
     
     // Called to layout the WebWidget.  This MUST be called before Paint,
     // and it may result in calls to WebWidgetClient::didInvalidateRect.
