@@ -974,59 +974,90 @@ void WebViewImpl::queryNodeTypeAtPoint(int x, int y, unsigned int& node_info)
    
         // Track complex-mouse event, such as double click, mouse move .etc 
         Element * hitElement = hitNode->isElementNode()? static_cast<HTMLElement*>(hitNode): hitNode->parentElement();
+        Element * mousemoveElement = NULL;
         while (hitElement) {
           // the node is considered as double click aware node if it listens to dblclick events
           if (hitElement->hasEventListeners("dblclick")) {
             node_info |= NODE_INFO_HAS_DOUBLECLICK_LISTENER;
           }
  
-          // the node is considered as mouse move aware node if it listens to mouse move events
+          // the node is considered as mouse move aware node if it listens to mouse move/ mouse over events
           // some website need mousedown&mouseup to trigger mousemove event listener, such as Google map
-          if (hitElement->hasEventListeners("mousedown")
-              && hitElement->hasEventListeners("mouseup")) {
-            node_info |= NODE_INFO_HAS_MOUSEMOVE_LISTENER;
-          }
-          if (hitElement->hasEventListeners("mousemove")
+          if ((hitElement->hasEventListeners("mousedown")
+                 && hitElement->hasEventListeners("mouseup")) 
+              || hitElement->hasEventListeners("mousemove")
               || hitElement->hasEventListeners("mouseover")) {
             // When rect of node in the mainframe visible content rect,
             // we should not send the mouse move, but let pan gesture 
             // enable in the frontend.
             IntRect visibleContentRect = m_page->mainFrame()->view()->actualVisibleContentRect();
             if (hitElement->getRect().width() < visibleContentRect.width()
-                && hitElement->getRect().height() < visibleContentRect.height())
-              node_info |= NODE_INFO_HAS_MOUSEMOVE_LISTENER;
+                && hitElement->getRect().height() < visibleContentRect.height()) {
+               node_info |= NODE_INFO_HAS_MOUSEMOVE_LISTENER;
+               mousemoveElement = hitElement;
+            }
           }
           if (hitElement->hasEventListeners("mouseover")) {
             node_info |= NODE_INFO_HAS_MOUSEOVER_LISTENER;
           }
 
           if ((node_info & NODE_INFO_HAS_DOUBLECLICK_LISTENER) 
-              && (node_info & NODE_INFO_HAS_MOUSEMOVE_LISTENER)) {
+              && (node_info & NODE_INFO_HAS_MOUSEMOVE_LISTENER) 
+              && (node_info & NODE_INFO_HAS_MOUSEOVER_LISTENER)) {
             break;
           }
           hitElement = hitElement->parentElement();
         }
-          
+        
         bool scrollable = false;
+        // track whether scrollBox is parent of mousemoveElement.
+        bool scrollboxIsParent = false;
         RenderObject* renderer = hitNode->renderer();
+        RenderObject* mousemoveRenderer = mousemoveElement? static_cast<Node*>(mousemoveElement)->renderer(): NULL;
         for (; renderer; renderer = renderer->parent()) {
+          scrollboxIsParent = scrollboxIsParent || (renderer == mousemoveRenderer); 
           if (renderer->isBox() && toRenderBox(renderer)->canBeScrolledAndHasScrollableArea()) {
             scrollable = true;
             break;
           }
         }
-
+        
         if (scrollable && renderer && renderer->parent())
         {
-          node_info |= NODE_INFO_IS_SCROLLABLE_AREA;
+          // Because NODE_INFO_HAS_MOUSEMOVE_LISTENER and NODE_INFO_IS_SCROLLABLE_AREA
+          // would conflict when browser deliver event mousemove and mousewheel event 
+          // according to these two listener seperate, such as: gmail.(BMC#19680 and BMC#19175).
+          // If mousemoveElement is parent element of scrollBox, add NODE_INFO_IS_SCROLLABLE_AREA only;
+          // others, add NODE_INFO_HAS_MOUSEMOVE_LISTENER only.
+          if (mousemoveElement) {
+            if (!scrollboxIsParent) {
+              node_info |= NODE_INFO_IS_SCROLLABLE_AREA;
+              node_info &= ~NODE_INFO_HAS_MOUSEMOVE_LISTENER;
+            } 
+          } else {
+            node_info |= NODE_INFO_IS_SCROLLABLE_AREA;
+          }
         }
-
+        
         renderer = hitNode->renderer();
         FrameView* view = renderer->frame()->view();
         if (view && ((view->contentsWidth() > view->visibleWidth()) ||
                      (view->contentsHeight() > view->visibleHeight())))
         {
-          node_info |= NODE_INFO_IS_SCROLLABLE_AREA;
+          // Because NODE_INFO_HAS_MOUSEMOVE_LISTENER and NODE_INFO_IS_SCROLLABLE_AREA
+          // would conflict when browser deliver event mousemove and mousewheel event 
+          // according to these two listener seperate, such as: gmail.(BMC#19680 and BMC#19175).
+          // If mousemoveElement share the same frame with hitNode(), add NODE_INFO_HAS_MOUSEMOVE_LISTENER only;
+          // others, add NODE_INFO_IS_SCROLLABLE_AREA only.
+          if (mousemoveElement) {
+            FrameView* mousemoveView = static_cast<Node*>(mousemoveElement)->renderer()->frame()->view();
+            if (mousemoveView && mousemoveView != view) { 
+              node_info |= NODE_INFO_IS_SCROLLABLE_AREA;
+              node_info &= ~NODE_INFO_HAS_MOUSEMOVE_LISTENER;
+            } 
+          } else {
+            node_info |= NODE_INFO_IS_SCROLLABLE_AREA;
+          }
         }
     }
 }
